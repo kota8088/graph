@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ネオン宇宙グラフ📊</title>
+  <title>グラフ作成サイト📊</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>📊</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -11,100 +11,75 @@
 
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
-      background: radial-gradient(ellipse at 20% 50%, #0d1b2a 0%, #1b263b 50%, #0a0a1a 100%);
+      background: #0d0d1a;
       min-height: 100vh;
       padding: 20px;
       display: flex;
       justify-content: center;
       align-items: center;
       color: #e0e0e0;
-      overflow-x: hidden;
-      position: relative;
-    }
-
-    /* 星の背景 */
-    body::before, body::after {
-      content: '';
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 0;
-    }
-    body::before {
-      background-image: 
-        radial-gradient(2px 2px at 20px 30px, #fff, transparent),
-        radial-gradient(2px 2px at 80px 120px, #f0f, transparent),
-        radial-gradient(3px 3px at 160px 40px, #0ff, transparent),
-        radial-gradient(2px 2px at 300px 200px, #fff, transparent),
-        radial-gradient(3px 3px at 450px 80px, #ff0, transparent),
-        radial-gradient(2px 2px at 600px 300px, #fff, transparent),
-        radial-gradient(2px 2px at 750px 150px, #0ff, transparent),
-        radial-gradient(3px 3px at 900px 50px, #f0f, transparent),
-        radial-gradient(2px 2px at 150px 350px, #fff, transparent),
-        radial-gradient(3px 3px at 400px 400px, #ff0, transparent),
-        radial-gradient(2px 2px at 700px 500px, #fff, transparent),
-        radial-gradient(2px 2px at 1000px 400px, #0ff, transparent);
-      background-repeat: repeat;
-      opacity: 0.6;
-      animation: twinkle 4s ease-in-out infinite alternate;
-    }
-    body::after {
-      background: radial-gradient(ellipse at 70% 80%, rgba(255,0,255,0.1), transparent 50%);
-    }
-    @keyframes twinkle {
-      0% { opacity: 0.4; }
-      100% { opacity: 0.8; }
     }
 
     .container {
       max-width: 1200px;
       width: 100%;
-      background: rgba(10, 15, 30, 0.85);
-      border-radius: 24px;
-      box-shadow: 
-        0 0 30px rgba(0, 255, 255, 0.3),
-        0 0 60px rgba(255, 0, 255, 0.2),
-        inset 0 0 20px rgba(0, 255, 255, 0.05);
+      background: #12122a;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
       padding: 30px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(0, 255, 255, 0.2);
-      position: relative;
-      z-index: 1;
+      border: 1px solid #00ffff33;
     }
 
     h1 {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       font-size: 2rem;
-      color: #0ff;
-      text-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 40px #0ff;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
       margin-bottom: 10px;
-      letter-spacing: 2px;
     }
 
     h1 span { font-size: 2.4rem; filter: drop-shadow(0 0 10px #ff00ff); }
 
-    .subtitle { color: #f0f; text-shadow: 0 0 5px #f0f; margin-bottom: 24px; }
+    .subtitle { color: #ff00ff; margin-bottom: 24px; }
 
-    /* チャート表示エリア */
+    /* チャートエリア */
     .chart-area {
-      background: rgba(0, 0, 20, 0.7);
-      border: 1px solid rgba(0, 255, 255, 0.5);
+      background: rgba(0, 0, 30, 0.8);
+      border: 1px solid #00ffff80;
       border-radius: 16px;
       padding: 20px;
       margin-bottom: 30px;
+      height: 350px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
       position: relative;
-      min-height: 300px;
-      height: 300px;
-      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 255, 255, 0.2);
+    }
+
+    .chart-title-display {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #ffff00;
+      text-shadow: 0 0 10px #ffff00, 0 0 20px #ffff00;
+      z-index: 10;
+      max-width: 80%;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      padding: 5px 15px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 20px;
+      border: 1px solid #ffff0066;
+      pointer-events: none; /* クリックは透過 */
     }
 
     canvas {
       width: 100% !important;
       height: 100% !important;
-      filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.5));
     }
 
     /* コントロール */
@@ -112,110 +87,95 @@
       display: flex;
       flex-wrap: wrap;
       gap: 16px;
-      align-items: flex-start;
+      align-items: flex-end;
       margin-bottom: 30px;
-      background: rgba(0, 10, 30, 0.8);
+      background: #1a1a30;
       padding: 20px;
       border-radius: 16px;
-      border: 1px solid rgba(255, 0, 255, 0.3);
-      box-shadow: 0 0 15px rgba(255, 0, 255, 0.1);
+      border: 1px solid #ff00ff40;
     }
 
     .control-group {
       display: flex;
       flex-direction: column;
-      min-width: 130px;
+      flex: 1;
+      min-width: 150px;
     }
 
     .control-group label {
       font-size: 0.9rem;
-      color: #0ff;
+      color: #00ffff;
       margin-bottom: 4px;
       font-weight: 600;
-      text-shadow: 0 0 5px #0ff;
+      text-shadow: 0 0 5px #00ffff;
     }
 
-    .control-group input[type="number"],
+    .control-group input,
     .control-group select {
-      background: rgba(0, 0, 20, 0.8);
-      border: 1px solid #0ff;
-      color: #fff;
-      padding: 10px 12px;
+      background: #000020;
+      border: 1px solid #00ffff;
+      color: white;
+      padding: 10px;
       border-radius: 8px;
-      font-size: 0.95rem;
-      box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
+      width: 100%;
     }
 
-    input:focus, select:focus {
-      outline: none;
-      border-color: #f0f !important;
-      box-shadow: 0 0 12px rgba(255, 0, 255, 0.4) !important;
+    .control-group input[type="text"] {
+      flex: 2; 
     }
 
     button {
-      background: linear-gradient(135deg, #0ff, #f0f);
+      background: linear-gradient(135deg, #00ffff, #ff00ff);
       color: #000;
       border: none;
-      padding: 12px 24px;
+      padding: 12px 20px;
       border-radius: 8px;
-      font-size: 1rem;
+      font-weight: bold;
       cursor: pointer;
-      transition: all 0.3s;
-      font-weight: 700;
-      box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      box-shadow: 0 0 15px #00ffff80;
+      transition: 0.3s;
       margin-top: auto;
     }
 
     button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 0 30px rgba(255, 0, 255, 0.6), 0 0 60px rgba(0, 255, 255, 0.4);
+      box-shadow: 0 0 25px #ff00ff;
     }
 
     .btn-group {
       display: flex;
       gap: 10px;
-      margin-top: auto;
       flex-wrap: wrap;
     }
 
     .btn-secondary {
-      background: rgba(0, 255, 255, 0.1);
-      border: 1px solid #0ff;
-      color: #0ff;
+      background: transparent;
+      border: 1px solid #00ffff;
+      color: #00ffff;
       box-shadow: none;
     }
-    .btn-secondary:hover {
-      background: rgba(0, 255, 255, 0.2);
-      box-shadow: 0 0 15px #0ff;
-    }
+    .btn-secondary:hover { background: #00ffff20; }
+
     .btn-danger {
-      background: rgba(255, 0, 255, 0.1);
-      border: 1px solid #f0f;
-      color: #f0f;
+      background: transparent;
+      border: 1px solid #ff00ff;
+      color: #ff00ff;
       box-shadow: none;
     }
-    .btn-danger:hover {
-      background: rgba(255, 0, 255, 0.2);
-      box-shadow: 0 0 15px #f0f;
-    }
+    .btn-danger:hover { background: #ff00ff20; }
 
     /* データ入力エリア */
     .data-input-section {
-      margin-top: 20px;
-      background: rgba(0, 5, 20, 0.9);
+      background: #1a1a30;
+      border: 1px solid #00ffff40;
       border-radius: 12px;
       padding: 20px;
-      border: 1px solid rgba(0, 255, 255, 0.3);
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+      margin-top: 20px;
     }
 
     .data-input-section h3 {
-      font-size: 1.2rem;
+      color: #ff00ff;
       margin-bottom: 16px;
-      color: #f0f;
-      text-shadow: 0 0 10px #f0f;
+      text-shadow: 0 0 5px #ff00ff;
     }
 
     .data-grid {
@@ -225,181 +185,130 @@
       max-width: 600px;
     }
 
-    .data-row {
-      display: contents;
-    }
-
     .data-row label {
+      color: #00ffff;
+      text-shadow: 0 0 3px #00ffff;
       font-size: 0.9rem;
-      color: #0ff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
     }
 
     .data-row input {
-      background: rgba(0, 0, 30, 0.7);
-      border: 1px solid rgba(0, 255, 255, 0.4);
-      color: #fff;
-      padding: 8px 12px;
+      background: #000020;
+      border: 1px solid #00ffff60;
+      color: white;
+      padding: 8px;
       border-radius: 6px;
-      font-size: 0.95rem;
       width: 100%;
-      transition: all 0.2s;
     }
 
     .data-row input:focus {
-      border-color: #f0f;
-      box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+      border-color: #ff00ff;
+      box-shadow: 0 0 8px #ff00ff;
       outline: none;
     }
 
     .input-actions {
       margin-top: 20px;
-      display: flex;
-      gap: 12px;
-      justify-content: flex-start;
     }
 
     /* 説明セクション */
-    .explanation {
-      border-top: 1px solid rgba(0, 255, 255, 0.3);
-      padding-top: 24px;
-      margin-top: 10px;
-    }
-
-    .explanation h2 { 
-      font-size: 1.5rem; 
-      margin-bottom: 16px; 
-      color: #ff0; 
-      text-shadow: 0 0 10px #ff0, 0 0 20px #ff0;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 16px;
-      margin-top: 16px;
+    .explanation h2 {
+      color: #ffff00;
+      text-shadow: 0 0 5px #ffff00;
     }
 
     .card {
-      background: rgba(0, 10, 30, 0.7);
-      border-radius: 12px;
-      padding: 20px;
-      border: 1px solid rgba(0, 255, 255, 0.2);
-      transition: all 0.3s;
+      background: #1a1a30;
+      border: 1px solid #00ffff30;
+      margin-top: 10px;
+      padding: 15px;
+      border-radius: 8px;
     }
 
-    .card:hover {
-      border-color: #f0f;
-      box-shadow: 0 0 20px rgba(255, 0, 255, 0.2);
-      transform: translateY(-3px);
-    }
-
-    .card h3 { 
-      margin-bottom: 8px; 
-      font-size: 1.2rem; 
-      color: #0ff; 
-      text-shadow: 0 0 5px #0ff;
-    }
-    .card p { color: #ccc; line-height: 1.6; font-size: 0.95rem; }
+    .card h3 { color: #00ffff; }
+    .card p { color: #ccc; }
 
     .howto {
-      background: rgba(255, 0, 255, 0.05);
-      border: 1px solid #f0f;
-      border-radius: 12px;
+      background: #220022;
+      border: 1px solid #ff00ff;
       padding: 20px;
-      margin-top: 24px;
+      border-radius: 12px;
+      margin-top: 20px;
     }
 
-    .howto h3 { margin-bottom: 12px; color: #ff0; text-shadow: 0 0 5px #ff0; }
-    .howto ol { padding-left: 20px; color: #ccc; line-height: 2; }
-    .howto code {
-      background: rgba(0, 0, 20, 0.8);
-      padding: 2px 6px;
-      border-radius: 4px;
-      color: #0ff;
-      border: 1px solid #0ff;
-    }
-
-    ::selection { background: #f0f; color: #000; }
+    .howto h3 { color: #ffff00; }
+    .howto ol { color: #ccc; line-height: 2; }
+    .howto code { background: #000; padding: 2px 6px; color: #00ffff; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1><span>📊</span> ネオン宇宙グラフ</h1>
-    <p class="subtitle">データをインプットして、星のようなグラフを描こう</p>
+    <h1><span>📊</span> ネオン色グラフ</h1>
+    <p class="subtitle">データを入力して、光るグラフを描こう</p>
 
-    <!-- チャート表示エリア -->
     <div class="chart-area">
+      <div id="chartTitleDisplay" class="chart-title-display">グラフ名</div>
       <canvas id="myChart"></canvas>
     </div>
 
-    <!-- 基本コントロール -->
     <div class="controls">
+      <div class="control-group">
+        <label for="graphTitle">グラフ名</label>
+        <input type="text" id="graphTitle" placeholder="グラフタイトルを入力" value="グラフ名">
+      </div>
       <div class="control-group">
         <label for="dataCount">データ数</label>
         <input type="number" id="dataCount" min="1" max="12" value="3">
       </div>
       <div class="control-group">
-        <label for="chartType">グラフの種類</label>
+        <label for="chartType">種類</label>
         <select id="chartType">
-          <option value="bar" style="background:#0a0a1a;">棒グラフ</option>
-          <option value="line" style="background:#0a0a1a;">折れ線グラフ</option>
-          <option value="pie" style="background:#0a0a1a;">円グラフ</option>
-          <option value="doughnut" style="background:#0a0a1a;">ドーナツ</option>
+          <option value="bar">棒</option>
+          <option value="line">折れ線</option>
+          <option value="pie">円</option>
+          <option value="doughnut">ドーナツ</option>
         </select>
       </div>
       <div class="btn-group">
-        <button id="updateBtn" style="flex:1;">描画</button>
-        <button id="resetBtn" class="btn-danger" title="すべての入力をクリア">全消去</button>
-        <button id="undoBtn" class="btn-secondary" title="直前の入力状態に戻す" disabled>巻き戻し</button>
+        <button id="updateBtn">描画</button>
+        <button id="resetBtn" class="btn-danger">全消去</button>
+        <button id="undoBtn" class="btn-secondary" disabled>巻き戻し</button>
       </div>
     </div>
 
-    <!-- データ入力エリア -->
     <div class="data-input-section">
-      <h3>🌠 データ入力</h3>
-      <div id="dataInputContainer" class="data-grid">
-        <!-- JSで動的生成 -->
-      </div>
+      <h3>💾 データ入力</h3>
+      <div id="dataInputContainer" class="data-grid"></div>
       <div class="input-actions">
         <button id="clearInputsBtn" class="btn-danger" style="padding:8px 16px;">入力欄クリア</button>
       </div>
     </div>
 
-    <!-- 説明セクション -->
     <div class="explanation">
       <h2>📖 グラフの種類と使い方</h2>
-      <div class="cards">
-        <div class="card">
-          <h3>📊 棒グラフ</h3>
-          <p>カテゴリー比較に最適。ネオンのバーでデータの大小を瞬時に比較できます。</p>
-        </div>
-        <div class="card">
-          <h3>📈 折れ線グラフ</h3>
-          <p>トレンドや時間変化を美しいネオンラインで表現。パルスのような動きが魅力。</p>
-        </div>
-        <div class="card">
-          <h3>🥧 円グラフ</h3>
-          <p>全体に占める割合を銀河のように表現。構成比を直感的に理解できます。</p>
-        </div>
-        <div class="card">
-          <h3>🍩 ドーナツグラフ</h3>
-          <p>中央に穴のある宇宙のリング。複数系列の比較や中心に情報を置くのに。</p>
-        </div>
+      <div class="card">
+        <h3>📊 棒グラフ</h3>
+        <p>カテゴリー比較に最適</p>
       </div>
-
+      <div class="card">
+        <h3>📈 折れ線グラフ</h3>
+        <p>トレンドや変化を表示</p>
+      </div>
+      <div class="card">
+        <h3>🥧 円グラフ</h3>
+        <p>割合を視覚化</p>
+      </div>
+      <div class="card">
+        <h3>🍩 ドーナツグラフ</h3>
+        <p>割合表示＋中心情報</p>
+      </div>
       <div class="howto">
         <h3>💡 使い方</h3>
         <ol>
-          <li>「データ数」で項目数を設定（1〜12個）すると、入力欄が自動生成</li>
-          <li>ラベルと値を個別に入力</li>
-          <li>「描画」ボタンでネオングラフが表示されます</li>
-          <li><strong>全消去</strong> → すべての入力を空にしてグラフもリセット</li>
-          <li><strong>巻き戻し</strong> → 直前の入力状態とグラフを復元（1ステップだけ戻れます）</li>
-          <li><strong>入力欄クリア</strong> → 入力値のみを消去（グラフは維持）</li>
+          <li>グラフ名を入力（例: 月間売上）</li>
+          <li>データ数で項目数設定</li>
+          <li>ラベルと値を入力</li>
+          <li>「描画」ボタンで表示</li>
+          <li>「全消去」でリセット、「巻き戻し」で1ステップ戻る</li>
         </ol>
       </div>
     </div>
@@ -408,53 +317,44 @@
   <script>
     const ctx = document.getElementById('myChart').getContext('2d');
     let chart;
-    
-    // 状態管理（巻き戻し用）
     let history = [];
-    let currentInput = {
-      count: 3,
-      type: 'bar',
-      labels: ['', '', ''],
-      values: [null, null, null]
-    };
 
-    // ネオンカラーパレット
     const neonColors = ['#00ffff', '#ff00ff', '#ffff00', '#00ff88', '#ff6600', '#ff3388', '#33ccff', '#ccff00', '#ff0033', '#55ffff', '#ff55ff', '#ffff55'];
     const neonBorder = ['#00ffff', '#ff00ff', '#ffff00', '#00ff88', '#ff6600', '#ff3388', '#33ccff', '#ccff00', '#ff0033', '#55ffff', '#ff55ff', '#ffff55'];
 
-    // データ入力欄を生成
+    // グラフ名表示を更新
+    function updateTitleDisplay(title) {
+      document.getElementById('chartTitleDisplay').textContent = title || 'グラフ名';
+    }
+
     function generateInputs(count, savedLabels = [], savedValues = []) {
       const container = document.getElementById('dataInputContainer');
       container.innerHTML = '';
-
       for (let i = 1; i <= count; i++) {
-        const labelDiv = document.createElement('div');
-        labelDiv.className = 'data-row';
-        const labelVal = savedLabels[i-1] !== undefined ? savedLabels[i-1] : '';
-        labelDiv.innerHTML = `
-          <label for="label_${i}" style="color: ${neonColors[(i-1)%neonColors.length]}; text-shadow: 0 0 5px ${neonColors[(i-1)%neonColors.length]}">ラベル${i}</label>
-          <input type="text" id="label_${i}" value="${labelVal.replace(/"/g, '&quot;')}" placeholder="項目 ${i}" style="border-color: ${neonColors[(i-1)%neonColors.length]}">
-        `;
-        const valueDiv = document.createElement('div');
-        valueDiv.className = 'data-row';
-        const valVal = savedValues[i-1] !== undefined && savedValues[i-1] !== null ? savedValues[i-1] : '';
-        valueDiv.innerHTML = `
-          <label for="value_${i}" style="color: ${neonColors[(i-1)%neonColors.length]}; text-shadow: 0 0 5px ${neonColors[(i-1)%neonColors.length]}">値${i}</label>
-          <input type="number" id="value_${i}" value="${valVal}" step="any" placeholder="数値" style="border-color: ${neonColors[(i-1)%neonColors.length]}">
-        `;
-        container.appendChild(labelDiv);
-        container.appendChild(valueDiv);
+        const lb = document.createElement('div');
+        lb.className = 'data-row';
+        const lv = savedLabels[i-1] ?? '';
+        lb.innerHTML = `<label for="label_${i}" style="color:${neonColors[(i-1)%neonColors.length]}">ラベル${i}</label>
+                        <input type="text" id="label_${i}" value="${lv.replace(/"/g,'&quot;')}" style="border-color:${neonColors[(i-1)%neonColors.length]}">`;
+        container.appendChild(lb);
+
+        const vb = document.createElement('div');
+        vb.className = 'data-row';
+        const vv = savedValues[i-1] !== null && savedValues[i-1] !== undefined ? savedValues[i-1] : '';
+        vb.innerHTML = `<label for="value_${i}" style="color:${neonColors[(i-1)%neonColors.length]}">値${i}</label>
+                        <input type="number" id="value_${i}" value="${vv}" step="any" style="border-color:${neonColors[(i-1)%neonColors.length]}">`;
+        container.appendChild(vb);
       }
     }
 
-    // 現在の入力状態を保存
-    function saveCurrentState() {
-      const count = parseInt(document.getElementById('dataCount').value, 10) || 0;
+    // 状態保存（グラフ名も含める）
+    function saveState() {
+      const title = document.getElementById('graphTitle').value.trim() || 'グラフ名';
+      const count = parseInt(document.getElementById('dataCount').value) || 0;
       const type = document.getElementById('chartType').value;
       const labels = [];
       const values = [];
-
-      for (let i = 1; i <= count; i++) {
+      for (let i=1; i<=count; i++) {
         const lbl = document.getElementById(`label_${i}`);
         const val = document.getElementById(`value_${i}`);
         if (!lbl || !val) break;
@@ -462,56 +362,43 @@
         const v = val.value === '' ? null : parseFloat(val.value);
         values.push(v);
       }
-
-      currentInput = {
-        count,
-        type,
-        labels,
-        values
-      };
+      return { title, count, type, labels, values };
     }
 
-    // 状態を復元（巻き戻し用）
     function restoreState(state) {
+      document.getElementById('graphTitle').value = state.title || 'グラフ名';
       document.getElementById('dataCount').value = state.count;
       document.getElementById('chartType').value = state.type;
       generateInputs(state.count, state.labels, state.values);
+      updateTitleDisplay(state.title);
       
-      // グラフを更新
-      const labels = [];
-      const values = [];
-      state.labels.forEach((l, idx) => {
-        if (state.values[idx] !== null) {
-          labels.push(l || `項目${idx+1}`);
-          values.push(state.values[idx]);
+      const labels = [], values = [];
+      state.labels.forEach((l,i)=>{
+        if (state.values[i] !== null) {
+          labels.push(l || `項目${i+1}`);
+          values.push(state.values[i]);
         }
       });
-      
-      createChart(state.type, labels, values);
+      createChart(state.type, labels, values, state.title);
       document.getElementById('undoBtn').disabled = history.length === 0;
     }
 
-    // チャート描画
-    function createChart(type, labels, data) {
+    function createChart(type, labels, data, title = 'グラフ名') {
       if (chart) chart.destroy();
-
-      const isPie = (type === 'pie' || type === 'doughnut');
-      const bgColors = data.map((_, i) => neonColors[i % neonColors.length]);
-      
+      const isPie = (type==='pie' || type==='doughnut');
+      const bg = data.map((_,i)=>neonColors[i%neonColors.length] + (isPie ? 'CC' : '88'));
       const config = {
         type: type,
         data: {
-          labels: labels,
+          labels,
           datasets: [{
-            label: 'データ',
-            data: data,
-            backgroundColor: isPie ? bgColors : bgColors.map(c => c + '88'), // 透明度追加
-            borderColor: isPie ? '#000' : neonBorder,
+            data,
+            label: title,
+            backgroundColor: bg,
+            borderColor: neonBorder,
             borderWidth: 2,
             pointBackgroundColor: neonColors,
             pointBorderColor: '#fff',
-            pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: neonColors,
           }]
         },
         options: {
@@ -520,142 +407,94 @@
           plugins: {
             legend: { 
               display: isPie, 
-              position: 'bottom',
-              labels: { color: '#0ff' }
+              labels: { color: '#00ffff' },
+              title: {
+                display: true,
+                text: title,
+                color: '#ffff00',
+                font: { size: 16, weight: 'bold' },
+                padding: { bottom: 10 }
+              }
             },
-            tooltip: {
-              backgroundColor: 'rgba(0,0,20,0.9)',
-              titleColor: '#0ff',
-              bodyColor: '#fff',
-              borderColor: '#f0f',
-              borderWidth: 1
-            }
+            tooltip: { backgroundColor: '#000', titleColor: '#00ffff', borderColor: '#ff00ff' }
           },
           scales: isPie ? {} : {
-            x: {
-              ticks: { color: '#0ff' },
-              grid: { color: 'rgba(0, 255, 255, 0.2)' }
-            },
-            y: {
-              beginAtZero: true,
-              ticks: { color: '#f0f' },
-              grid: { color: 'rgba(255, 0, 255, 0.2)' }
-            }
+            x: { ticks: { color: '#00ffff' }, grid: { color: '#00ffff22' } },
+            y: { beginAtZero: true, ticks: { color: '#ff00ff' }, grid: { color: '#ff00ff22' } }
           }
         }
       };
-
       chart = new Chart(ctx, config);
+      updateTitleDisplay(title);
     }
 
-    // 初期化
-    function initialize() {
+    function init() {
       generateInputs(3);
-      createChart('bar', [], []);
+      updateTitleDisplay('グラフ名');
+      createChart('bar', [], [], 'グラフ名');
       document.getElementById('undoBtn').disabled = true;
     }
 
-    // イベントリスナー
-    document.getElementById('dataCount').addEventListener('change', function() {
-      let count = parseInt(this.value, 10);
-      if (isNaN(count) || count < 1) count = 1;
-      if (count > 12) count = 12;
-      this.value = count;
-      
-      // 現在の入力を取得後、新しいフィールドを生成
-      const prevLabels = [];
-      const prevValues = [];
-      const oldCount = currentInput.count;
-      for (let i = 1; i <= oldCount; i++) {
-        const lbl = document.getElementById(`label_${i}`);
-        const val = document.getElementById(`value_${i}`);
-        if (lbl && val) {
-          prevLabels.push(lbl.value.trim());
-          prevValues.push(val.value === '' ? null : parseFloat(val.value));
-        }
+    // イベント
+    document.getElementById('dataCount').addEventListener('change', function(){
+      let c = parseInt(this.value) || 1;
+      if (c<1) c=1;
+      if (c>12) c=12;
+      this.value = c;
+      const old = saveState();
+      const newLabels = [], newValues = [];
+      for (let i=0;i<c;i++) {
+        newLabels.push(old.labels[i] || '');
+        newValues.push(old.values[i] !== undefined ? old.values[i] : null);
       }
-      
-      // 新しいカウント分にうまく調整
-      const newLabels = [];
-      const newValues = [];
-      for (let i = 0; i < count; i++) {
-        newLabels.push(prevLabels[i] || '');
-        newValues.push((prevValues[i] !== undefined && prevValues[i] !== null) ? prevValues[i] : null);
-      }
-      
-      generateInputs(count, newLabels, newValues);
-      currentInput = { count, type: currentInput.type, labels: newLabels, values: newValues };
+      generateInputs(c, newLabels, newValues);
     });
 
-    // 描画ボタン
-    document.getElementById('updateBtn').addEventListener('click', () => {
-      // 巻き戻し用に状態を保存
-      saveCurrentState();
-      history.push(JSON.parse(JSON.stringify(currentInput)));
-      if (history.length > 5) history.shift(); // 最大5ステップ
-      
-      const count = currentInput.count;
-      const type = document.getElementById('chartType').value;
-      const labels = [];
-      const values = [];
-
-      for (let i = 1; i <= count; i++) {
-        const lbl = document.getElementById(`label_${i}`);
-        const val = document.getElementById(`value_${i}`);
-        if (!lbl || !val) break;
-        
-        const label = lbl.value.trim();
-        const value = val.value === '' ? null : parseFloat(val.value);
-        
-        if (value !== null) {
-          labels.push(label || `項目${i}`);
-          values.push(value);
+    document.getElementById('updateBtn').addEventListener('click', ()=>{
+      history.push(saveState());
+      if (history.length>5) history.shift();
+      const st = saveState();
+      const labels = [], values = [];
+      st.labels.forEach((l,i)=>{
+        if (st.values[i] !== null) {
+          labels.push(l || `項目${i+1}`);
+          values.push(st.values[i]);
         }
-      }
-
-      createChart(type, labels, values);
+      });
+      createChart(st.type, labels, values, st.title);
       document.getElementById('undoBtn').disabled = false;
     });
 
-    // 全消去ボタン
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      // 巻き戻し用に保存
-      saveCurrentState();
-      history.push(JSON.parse(JSON.stringify(currentInput)));
-      if (history.length > 5) history.shift();
-
-      // リセット
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+      history.push(saveState());
+      if (history.length>5) history.shift();
+      document.getElementById('graphTitle').value = 'グラフ名';
       document.getElementById('dataCount').value = 3;
       document.getElementById('chartType').value = 'bar';
       generateInputs(3);
-      
-      currentInput = { count: 3, type: 'bar', labels: ['', '', ''], values: [null, null, null] };
-      createChart('bar', [], []);
+      createChart('bar', [], [], 'グラフ名');
       document.getElementById('undoBtn').disabled = false;
     });
 
-    // 巻き戻しボタン
-    document.getElementById('undoBtn').addEventListener('click', () => {
-      if (history.length > 0) {
-        const prevState = history.pop();
-        restoreState(prevState);
-        
-        // 現在の状態を更新
-        currentInput = prevState;
-        if (history.length === 0) {
-          document.getElementById('undoBtn').disabled = true;
-        }
+    document.getElementById('undoBtn').addEventListener('click', ()=>{
+      if (history.length) {
+        const prev = history.pop();
+        restoreState(prev);
+        document.getElementById('undoBtn').disabled = history.length===0;
       }
     });
 
-    // 入力欄クリアボタン（値のみクリア）
-    document.getElementById('clearInputsBtn').addEventListener('click', () => {
-      const count = parseInt(document.getElementById('dataCount').value, 10) || 0;
-      generateInputs(count, [], []);
+    document.getElementById('clearInputsBtn').addEventListener('click', ()=>{
+      const cnt = parseInt(document.getElementById('dataCount').value) || 3;
+      generateInputs(cnt);
     });
 
-    // 初期化
-    initialize();
+    // グラフ名をリアルタイムで表示欄に反映（入力中）
+    document.getElementById('graphTitle').addEventListener('input', function(){
+      updateTitleDisplay(this.value.trim() || 'グラフ名');
+    });
+
+    init();
   </script>
 </body>
 </html>
