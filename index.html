@@ -22,7 +22,7 @@
     }
 
     .container {
-      max-width: 1000px;
+      max-width: 1200px;
       width: 100%;
       background: white;
       border-radius: 24px;
@@ -41,10 +41,7 @@
 
     h1 span { font-size: 2.4rem; }
 
-    .subtitle {
-      color: #636e72;
-      margin-bottom: 24px;
-    }
+    .subtitle { color: #636e72; margin-bottom: 24px; }
 
     /* チャート表示エリア */
     .chart-area {
@@ -55,11 +52,12 @@
       margin-bottom: 30px;
       position: relative;
       min-height: 300px;
+      height: 300px;
     }
 
     canvas {
       width: 100% !important;
-      height: auto !important;
+      height: 100% !important;
     }
 
     /* コントロール */
@@ -67,7 +65,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 16px;
-      align-items: flex-end;
+      align-items: flex-start;
       margin-bottom: 30px;
       background: #f8f9fa;
       padding: 20px;
@@ -77,18 +75,18 @@
     .control-group {
       display: flex;
       flex-direction: column;
-      flex: 1;
       min-width: 150px;
     }
 
-    label {
+    .control-group label {
       font-size: 0.9rem;
       color: #2d3436;
       margin-bottom: 4px;
       font-weight: 600;
     }
 
-    input, select {
+    .control-group input[type="number"],
+    .control-group select {
       padding: 10px 12px;
       border: 2px solid #b2bec3;
       border-radius: 8px;
@@ -111,21 +109,66 @@
       cursor: pointer;
       transition: background 0.2s;
       font-weight: 600;
+      margin-top: auto;
     }
 
     button:hover { background: #0757a0; }
+
+    /* データ入力エリア */
+    .data-input-section {
+      margin-top: 20px;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #dfe6e9;
+    }
+
+    .data-input-section h3 {
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      color: #2d3436;
+    }
+
+    .data-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 20px;
+      max-width: 600px;
+    }
+
+    .data-row {
+      display: contents;
+    }
+
+    .data-row label {
+      font-size: 0.9rem;
+      color: #636e72;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .data-row input {
+      padding: 8px 12px;
+      border: 1px solid #dfe6e9;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      width: 100%;
+    }
+
+    .data-row input:focus {
+      border-color: #0984e3;
+      outline: none;
+    }
 
     /* 説明セクション */
     .explanation {
       border-top: 1px solid #dfe6e9;
       padding-top: 24px;
+      margin-top: 10px;
     }
 
-    .explanation h2 {
-      font-size: 1.5rem;
-      margin-bottom: 16px;
-      color: #2d3436;
-    }
+    .explanation h2 { font-size: 1.5rem; margin-bottom: 16px; color: #2d3436; }
 
     .cards {
       display: grid;
@@ -142,7 +185,6 @@
     }
 
     .card h3 { margin-bottom: 8px; font-size: 1.2rem; color: #2d3436; }
-
     .card p { color: #636e72; line-height: 1.6; font-size: 0.95rem; }
 
     .howto {
@@ -153,9 +195,7 @@
     }
 
     .howto h3 { margin-bottom: 12px; color: #0984e3; }
-
     .howto ol { padding-left: 20px; color: #2d3436; line-height: 2; }
-
     .howto code {
       background: white;
       padding: 2px 6px;
@@ -166,25 +206,19 @@
 </head>
 <body>
   <div class="container">
-    <h1>
-      <span>📊</span> グラフ作成サイト
-    </h1>
-    <p class="subtitle">データを入力して、グラフを表示しよう</p>
+    <h1><span>📊</span> グラフ作成サイト</h1>
+    <p class="subtitle">データ数を指定して、ラベルと値を入力してください</p>
 
-    <!-- チャート表示領域（初期は空） -->
+    <!-- チャート表示領域 -->
     <div class="chart-area">
       <canvas id="myChart"></canvas>
     </div>
 
-    <!-- 入力コントロール -->
+    <!-- コントロール -->
     <div class="controls">
-      <div class="control-group" style="flex: 2;">
-        <label for="labels">ラベル（カンマ区切り）</label>
-        <input type="text" id="labels" placeholder="例: 1月,2月,3月" value="">
-      </div>
-      <div class="control-group" style="flex: 2;">
-        <label for="values">データ値（カンマ区切り）</label>
-        <input type="text" id="values" placeholder="例: 10,20,30" value="">
+      <div class="control-group">
+        <label for="dataCount">データ数</label>
+        <input type="number" id="dataCount" min="1" max="12" value="3">
       </div>
       <div class="control-group">
         <label for="chartType">グラフの種類</label>
@@ -196,6 +230,14 @@
         </select>
       </div>
       <button id="updateBtn">グラフを描画</button>
+    </div>
+
+    <!-- データ入力エリア（データ数に応じて動的生成） -->
+    <div class="data-input-section">
+      <h3>データ入力</h3>
+      <div id="dataInputContainer" class="data-grid">
+        <!-- JSで生成 -->
+      </div>
     </div>
 
     <!-- 説明セクション -->
@@ -223,12 +265,12 @@
       <div class="howto">
         <h3>💡 使い方</h3>
         <ol>
-          <li><strong>ラベル</strong> に項目名をカンマ区切りで入力（例: <code>1月,2月,3月</code>）</li>
-          <li><strong>データ値</strong> に数値をカンマ区切りで入力（例: <code>30,50,80</code>）</li>
-          <li>表示したい<strong>グラフの種類</strong>を選択</li>
-          <li>「グラフを描画」ボタンをクリック！</li>
+          <li>「データ数」に項目数を入力（例: 3）</li>
+          <li>すると、ラベルとデータの入力欄が自動的に増えます</li>
+          <li>ラベル（例: 1月, 2月）と数値（例: 30, 50）を個別に入力してください</li>
+          <li>グラフの種類を選択し、「グラフを描画」をクリック！</li>
         </ol>
-        <p style="margin-top: 12px; color: #636e72;">※ ラベルとデータ値の数が一致している必要があります。空の状態で更新すると空白のグラフが表示されます。</p>
+        <p style="margin-top: 12px; color: #636e72;">※ データ数は1〜12まで指定できます。空欄でも描画可能ですが、その場合は空白のグラフになります。</p>
       </div>
     </div>
   </div>
@@ -236,17 +278,49 @@
   <script>
     // 初期チャート（空白）
     const ctx = document.getElementById('myChart').getContext('2d');
-
-    // チャートデータとオプションを統一的に扱うための準備
     let chart;
 
-    // 初期状態では空のデータで作成
-    const createChart = (type = 'bar', labels = [], data = []) => {
-      // 既存のチャートを破棄
+    // データ入力欄を動的に生成する関数
+    function generateInputs(count) {
+      const container = document.getElementById('dataInputContainer');
+      container.innerHTML = ''; // 一旦クリア
+
+      for (let i = 1; i <= count; i++) {
+        // 1行（ラベル + 値）を生成
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'data-row';
+        labelDiv.innerHTML = `
+          <label for="label_${i}">ラベル${i}</label>
+          <input type="text" id="label_${i}" placeholder="例: 項目${i}">
+        `;
+        const valueDiv = document.createElement('div');
+        valueDiv.className = 'data-row';
+        valueDiv.innerHTML = `
+          <label for="value_${i}">値${i}</label>
+          <input type="number" id="value_${i}" placeholder="例: ${i * 10}" step="any">
+        `;
+        container.appendChild(labelDiv);
+        container.appendChild(valueDiv);
+      }
+    }
+
+    // データ数変更イベント
+    document.getElementById('dataCount').addEventListener('change', function() {
+      let count = parseInt(this.value, 10);
+      if (isNaN(count) || count < 1) count = 1;
+      if (count > 12) count = 12;
+      this.value = count;
+      generateInputs(count);
+    });
+
+    // 初期生成: デフォルトは3
+    generateInputs(3);
+
+    // チャート初期化（空白）
+    function createChart(type, labels, data) {
       if (chart) chart.destroy();
 
       const isPie = (type === 'pie' || type === 'doughnut');
-
       const config = {
         type: type,
         data: {
@@ -265,48 +339,38 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: {
-              display: isPie,
-              position: 'bottom'
-            },
-            title: {
-              display: false
-            }
+            legend: { display: isPie, position: 'bottom' }
           },
-          scales: isPie ? {} : {
-            y: {
-              beginAtZero: true
-            }
-          }
+          scales: isPie ? {} : { y: { beginAtZero: true } }
         }
       };
 
-      // 描画エリアの高さを調整
-      const area = document.querySelector('.chart-area');
-      area.style.height = isPie ? '300px' : '300px';
-
       chart = new Chart(ctx, config);
-    };
+    }
 
-    // 初期表示：空白のグラフ
+    // 初期表示: 空白グラフ
     createChart('bar', [], []);
 
     // 描画ボタン
     document.getElementById('updateBtn').addEventListener('click', () => {
       const type = document.getElementById('chartType').value;
-      const labels = document.getElementById('labels').value
-        .split(',')
-        .map(s => s.trim())
-        .filter(s => s !== '');
-      const values = document.getElementById('values').value
-        .split(',')
-        .map(s => Number(s.trim()))
-        .filter(n => !isNaN(n));
+      const count = parseInt(document.getElementById('dataCount').value, 10) || 0;
+      const labels = [];
+      const values = [];
 
-      // データ数が一致しなければアラート
-      if (labels.length !== values.length) {
-        alert('ラベルとデータ値の数が一致しません。もう一度確認してください。');
-        return;
+      for (let i = 1; i <= count; i++) {
+        const labelInput = document.getElementById(`label_${i}`);
+        const valueInput = document.getElementById(`value_${i}`);
+        if (!labelInput || !valueInput) break;
+
+        const label = labelInput.value.trim();
+        const value = parseFloat(valueInput.value);
+
+        // ラベルが空でも値があれば、ラベルは "項目X" を使用
+        if (value !== '' && !isNaN(value)) {
+          labels.push(label || `項目${i}`);
+          values.push(value);
+        }
       }
 
       createChart(type, labels, values);
