@@ -1,3 +1,5 @@
+グラフタイトルを入力できる項目を追加し、タイトルを含めてスクリーンショット・ダウンロードできるようHTML・CSS・JavaScriptを調整したコードを次に示します。
+```html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -357,6 +359,10 @@
         <p class="subtitle">Neon Chart Generator</p>
 
         <div class="control-panel">
+            <div class="form-group" style="flex:2; min-width:200px;">
+                <label for="chart-title">グラフタイトル</label>
+                <input type="text" id="chart-title" placeholder="例: 年間売上レポート" value="サンプルデータ">
+            </div>
             <div class="form-group">
                 <label for="chart-type">グラフの種類</label>
                 <select id="chart-type">
@@ -453,6 +459,7 @@
 
         function generateChart() {
             const type = document.getElementById('chart-type').value;
+            const title = document.getElementById('chart-title').value.trim();
             const rows = document.querySelectorAll('#data-rows .data-row');
             const labels = [];
             const data = [];
@@ -477,6 +484,15 @@
             // ネオンカラーパレット
             const neonColors = ['#ff2d95', '#00e5ff', '#39ff14', '#b537f2', '#ffb347', '#ff2d2d', '#00ffcc', '#ff77ff'];
 
+            // 共通タイトル設定
+            const baseTitleConfig = {
+                display: true,
+                text: title,
+                color: '#fff',
+                font: { family: 'Orbitron', size: 18, weight: '700' },
+                padding: { top: 10, bottom: 10 }
+            };
+
             let chartType = type;
             let chartData;
             let chartOptions;
@@ -497,6 +513,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        title: baseTitleConfig,
                         legend: {
                             labels: { color: '#fff', font: { family: 'Rajdhani', size: 14 } }
                         }
@@ -521,6 +538,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        title: baseTitleConfig,
                         legend: {
                             labels: { color: '#fff', font: { family: 'Rajdhani', size: 14 } }
                         }
@@ -554,6 +572,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        title: baseTitleConfig,
                         legend: { labels: { color: '#fff' } }
                     },
                     scales: {
@@ -589,6 +608,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        title: baseTitleConfig,
                         legend: { labels: { color: '#fff' } }
                     },
                     scales: {
@@ -623,7 +643,10 @@
             const wrapper = document.querySelector('.chart-wrapper');
             if (!wrapper) return null;
 
-            const canvas = await html2canvas(wrapper);
+            const canvas = await html2canvas(wrapper, {
+                backgroundColor: '#0b0b1a',
+                scale: 2
+            });
             return canvas.toDataURL('image/png');
         }
 
@@ -664,6 +687,22 @@
         // グラフ種別が変わったら自動で再生成（お好みで）
         document.getElementById('chart-type').addEventListener('change', () => {
             if (chart) generateChart();
+        });
+
+        // 初期表示のサンプルグラフ
+        window.addEventListener('DOMContentLoaded', () => {
+            // サンプルデータを設定
+            const rows = document.querySelectorAll('#data-rows .data-row');
+            if (rows.length >= 3) {
+                rows[0].querySelector('.label-input').value = '不動産';
+                rows[0].querySelector('.value-input').value = '1500';
+                rows[1].querySelector('.label-input').value = '小売';
+                rows[1].querySelector('.value-input').value = '1200';
+                rows[2].querySelector('.label-input').value = 'ITサービス';
+                rows[2].querySelector('.value-input').value = '1800';
+            }
+            document.getElementById('chart-title').value = '部門別業績サンプル';
+            generateChart();
         });
     </script>
 </body>
