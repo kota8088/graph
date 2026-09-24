@@ -48,6 +48,21 @@
     @media(max-width:1000px){.canvas-frame{height:min(70vw,600px);min-height:460px}}
     @media(max-width:560px){.canvas-frame{height:400px;min-height:0}#chartCanvas{padding:14px 4px 10px}}
   </style>
+  <style>
+    :root{--ink:#ffffff;--muted:#b7b9e8;--muted-strong:#f1efff;--line:rgba(0,255,255,.38);--panel:rgba(25,9,57,.93);--accent:#00ffff;--canvas:#08051e;--shadow:0 24px 90px rgba(0,0,0,.6)}
+    body{background:radial-gradient(circle at 76% -6%,rgba(0,255,255,.26),transparent 30rem),radial-gradient(circle at 8% 42%,rgba(255,0,170,.24),transparent 30rem),radial-gradient(circle at 95% 85%,rgba(126,34,206,.25),transparent 28rem),#03020d}
+    .brand-mark{background:linear-gradient(135deg,#00ffff 0%,#39ff14 48%,#ff00aa 100%);box-shadow:0 0 28px rgba(0,255,255,.75),0 0 58px rgba(255,0,170,.4)}
+    .eyebrow,.section-kicker,.step-badge,.count-badge,.field-note,.plus-icon,.select-chevron,.empty-icon{color:#00ffff;text-shadow:0 0 10px rgba(0,255,255,.6)}
+    .live-dot,#chartTypeIndicator{background:#00ffff;box-shadow:0 0 0 4px rgba(0,255,255,.2),0 0 20px #00ffff}
+    .control-panel,.preview-panel{border-color:rgba(0,255,255,.42);box-shadow:0 24px 90px rgba(0,0,0,.6),0 0 42px rgba(255,0,170,.12),inset 0 0 22px rgba(0,255,255,.025)}
+    .text-input,.row-input{border-color:rgba(147,111,255,.45)}
+    .text-input:focus,.row-input:focus{border-color:#00ffff;box-shadow:0 0 0 3px rgba(0,255,255,.16),0 0 24px rgba(0,255,255,.25)}
+    .step-badge,.chart-type-pill{border-color:rgba(0,255,255,.6);background:rgba(0,255,255,.12);box-shadow:0 0 22px rgba(0,255,255,.16)}
+    .primary-button{color:#041b18;background:linear-gradient(100deg,#00ffff,#39ff14);box-shadow:0 0 28px rgba(0,255,255,.5),0 0 42px rgba(57,255,20,.22)}
+    .primary-button:hover{background:linear-gradient(100deg,#9fffff,#b6ff8a);box-shadow:0 0 42px rgba(0,255,255,.8),0 0 58px rgba(57,255,20,.42)}
+    .mini-spark{background:#00ffff;box-shadow:10px 0 0 #ff00aa,20px 0 0 #a855f7}
+    .canvas-frame{border-color:rgba(0,255,255,.52);box-shadow:inset 0 0 0 1px rgba(0,255,255,.12),0 0 34px rgba(0,255,255,.18),0 0 52px rgba(255,0,170,.1)}
+  </style>
 </head>
 <body>
   <div class="app-shell">
@@ -124,22 +139,22 @@
               <label class="color-control">
                 <span>グラフの色</span>
                 <span class="color-picker-wrap">
-                  <input id="chartColor" type="color" value="#00f5d4" />
-                  <span id="chartColorValue">#00F5D4</span>
+                  <input id="chartColor" type="color" value="#00ffff" />
+                  <span id="chartColorValue">#00FFFF</span>
                 </span>
               </label>
               <label class="color-control">
                 <span>背景色</span>
                 <span class="color-picker-wrap">
-                  <input id="backgroundColor" type="color" value="#09091f" />
-                  <span id="backgroundColorValue">#09091F</span>
+                  <input id="backgroundColor" type="color" value="#08051e" />
+                  <span id="backgroundColorValue">#08051E</span>
                 </span>
               </label>
               <label class="color-control">
                 <span>グリッド・枠線</span>
                 <span class="color-picker-wrap">
-                  <input id="borderColor" type="color" value="#413a7d" />
-                  <span id="borderColorValue">#413A7D</span>
+                  <input id="borderColor" type="color" value="#7c3aed" />
+                  <span id="borderColorValue">#7C3AED</span>
                 </span>
               </label>
             </div>
@@ -212,7 +227,7 @@
     ];
     const typeNames = {bar:"縦棒グラフ",horizontalBar:"横棒グラフ",line:"折れ線グラフ",pie:"円グラフ",doughnut:"ドーナツグラフ",radar:"レーダーチャート",polarArea:"ポーラーエリア",scatter:"散布図",bubble:"バブルチャート",dot:"ドットプロット"};
     const typeHints = {bar:"項目ごとの数値を比較する基本的な棒グラフです。",horizontalBar:"長さの違いを横方向に比較しやすい棒グラフです。",line:"時間の変化やデータの流れを確認するグラフです。",pie:"全体に対する各項目の割合を表します。",doughnut:"中央に余白を持たせた割合表示のグラフです。",radar:"複数の評価軸をレーダー状に比較します。",polarArea:"項目ごとの大きさを扇形の面積で表します。",scatter:"入力した数値を項目ごとの点として自動表示します。",bubble:"入力した数値に合わせて点の大きさも自動調整します。",dot:"カテゴリごとの数値を1つのドットとして並べます。"};
-    const palette = ["#ec4899","#8b5cf6","#a3ff12","#00bbf9","#fee440","#ff6b6b","#22d3ee","#d946ef","#7dff8a","#ff9f1c"];
+    const palette = ["#ff00aa","#a855f7","#39ff14","#00ffff","#fff000","#ff3366","#00bfff","#ff44cc","#b6ff00","#ff8a00"];
     function escapeAttribute(value){return String(value).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
     function addRow(row={label:"",value:""}) {
       rowId++;
@@ -260,7 +275,7 @@
       const rows=getRows();if(chart)chart.destroy();if(!rows.length){chartCanvas.style.visibility="hidden";emptyState.hidden=false;return}chartCanvas.style.visibility="visible";emptyState.hidden=true;chart=new Chart(chartCanvas.getContext("2d"),improveChartReadability(createChartConfig(rows)));
     }
     function switchChartType(){const rows=collectRows();dataRows.innerHTML="";rows.forEach(row=>addRow(row));renderChart()}
-    function resetAll(){chartTitleInput.value="";chartTypeInput.value="bar";chartColorInput.value="#00f5d4";backgroundColorInput.value="#09091f";borderColorInput.value="#413a7d";dataRows.innerHTML="";initialRows.forEach(row=>addRow(row));renderChart()}
+    function resetAll(){chartTitleInput.value="";chartTypeInput.value="bar";chartColorInput.value="#00ffff";backgroundColorInput.value="#08051e";borderColorInput.value="#7c3aed";dataRows.innerHTML="";initialRows.forEach(row=>addRow(row));renderChart()}
     chartTitleInput.addEventListener("input",renderChart);chartTypeInput.addEventListener("change",switchChartType);[chartColorInput,backgroundColorInput,borderColorInput].forEach(input=>input.addEventListener("input",renderChart));addRowButton.addEventListener("click",()=>addRow());resetButton.addEventListener("click",resetAll);downloadButton.addEventListener("click",()=>{if(!chart)return;const link=document.createElement("a");link.download=`${(chartTitleInput.value.trim()||"グラフ").replace(/[\\/:*?"<>|]/g,"_")}.png`;link.href=chart.toBase64Image("image/png",1);link.click()});
     initialRows.forEach(row=>addRow(row));renderChart();
   </script>
