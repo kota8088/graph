@@ -359,7 +359,7 @@
         <div class="control-panel">
             <div class="form-group" style="flex:2; min-width:200px;">
                 <label for="chart-title">グラフタイトル</label>
-                <input type="text" id="chart-title" placeholder="例: 年間売上レポート" value="サンプルデータ">
+                <input type="text" id="chart-title" placeholder="例: 年間売上レポート">
             </div>
             <div class="form-group">
                 <label for="chart-type">グラフの種類</label>
@@ -419,6 +419,7 @@
             container.appendChild(row);
         }
 
+        // 空の3行を追加
         addRow();
         addRow();
         addRow();
@@ -682,25 +683,9 @@
             }
         });
 
-        // グラフ種別が変わったら自動で再生成（お好みで）
+        // グラフ種別が変わったら自動で再生成（グラフが既にある場合のみ）
         document.getElementById('chart-type').addEventListener('change', () => {
             if (chart) generateChart();
-        });
-
-        // 初期表示のサンプルグラフ
-        window.addEventListener('DOMContentLoaded', () => {
-            // サンプルデータを設定
-            const rows = document.querySelectorAll('#data-rows .data-row');
-            if (rows.length >= 3) {
-                rows[0].querySelector('.label-input').value = '不動産';
-                rows[0].querySelector('.value-input').value = '1500';
-                rows[1].querySelector('.label-input').value = '小売';
-                rows[1].querySelector('.value-input').value = '1200';
-                rows[2].querySelector('.label-input').value = 'ITサービス';
-                rows[2].querySelector('.value-input').value = '1800';
-            }
-            document.getElementById('chart-title').value = '部門別業績サンプル';
-            generateChart();
         });
     </script>
 </body>
