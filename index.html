@@ -1,500 +1,518 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>グラフ作成サイト</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>📊</text></svg>">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>グラフ作成サイト</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js">
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0d0d1a;
-      min-height: 100vh;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #e0e0e0;
-    }
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+            color: #fff;
+            background: #000;
+            background-image:
+                radial-gradient(circle at 70% 10%, rgba(255, 45, 149, 0.15), transparent 60%),
+                radial-gradient(circle at 15% 85%, rgba(0, 229, 255, 0.15), transparent 50%),
+                radial-gradient(circle at 40% 40%, #0b0b1a, #000);
+        }
 
-    .container {
-      max-width: 1200px;
-      width: 100%;
-      background: #12122a;
-      border-radius: 20px;
-      box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
-      padding: 30px;
-      border: 1px solid #00ffff33;
-    }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            padding: 30px;
+            border-radius: 16px;
+            background: rgba(10, 10, 30, 0.7);
+            backdrop-filter: blur(6px);
+            border: 1px solid #00e5ff;
+            box-shadow:
+                0 0 30px rgba(0, 229, 255, 0.3),
+                inset 0 0 30px rgba(0, 229, 255, 0.05);
+        }
 
-    h1 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 2rem;
-      color: #00ffff;
-      text-shadow: 0 0 10px #00ffff;
-      margin-bottom: 10px;
-    }
+        h1 {
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 4px;
+            margin-bottom: 6px;
+            color: #fff;
+            text-shadow:
+                0 0 8px #ff2d95,
+                0 0 20px #ff2d95,
+                0 0 40px #ff2d95;
+        }
 
-    h1 span { font-size: 2.4rem; filter: drop-shadow(0 0 10px #ff00ff); }
+        .subtitle {
+            text-align: center;
+            color: #00e5ff;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            margin-bottom: 25px;
+            text-shadow: 0 0 6px #00e5ff;
+        }
 
-    .subtitle { color: #ff00ff; margin-bottom: 24px; }
+        .control-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
 
-    /* チャートエリア */
-    .chart-area {
-      background: rgba(0, 0, 30, 0.8);
-      border: 1px solid #00ffff80;
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 30px;
-      height: 350px;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-      position: relative;
-    }
+        .form-group {
+            flex: 1;
+            min-width: 160px;
+        }
 
-    .chart-title-display {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #ffff00;
-      text-shadow: 0 0 10px #ffff00, 0 0 20px #ffff00;
-      z-index: 10;
-      max-width: 80%;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
-      padding: 5px 15px;
-      background: rgba(0,0,0,0.5);
-      border-radius: 20px;
-      border: 1px solid #ffff0066;
-      pointer-events: none; /* クリックは透過 */
-    }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #ff2d95;
+            text-shadow: 0 0 6px #ff2d95;
+        }
 
-    canvas {
-      width: 100% !important;
-      height: 100% !important;
-    }
+        select,
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 1rem;
+            font-family: 'Rajdhani', sans-serif;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #ff2d95;
+            border-radius: 8px;
+            outline: none;
+            box-shadow: 0 0 6px rgba(255, 45, 149, 0.4);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            appearance: none;
+        }
 
-    /* コントロール */
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      align-items: flex-end;
-      margin-bottom: 30px;
-      background: #1a1a30;
-      padding: 20px;
-      border-radius: 16px;
-      border: 1px solid #ff00ff40;
-    }
+        select option {
+            background: #111;
+        }
 
-    .control-group {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      min-width: 150px;
-    }
+        select:focus,
+        input:focus {
+            border-color: #00e5ff;
+            box-shadow: 0 0 14px rgba(0, 229, 255, 0.7);
+        }
 
-    .control-group label {
-      font-size: 0.9rem;
-      color: #00ffff;
-      margin-bottom: 4px;
-      font-weight: 600;
-      text-shadow: 0 0 5px #00ffff;
-    }
+        .data-section {
+            margin-bottom: 20px;
+        }
 
-    .control-group input,
-    .control-group select {
-      background: #000020;
-      border: 1px solid #00ffff;
-      color: white;
-      padding: 10px;
-      border-radius: 8px;
-      width: 100%;
-    }
+        .data-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
 
-    .control-group input[type="text"] {
-      flex: 2; 
-    }
+        .data-header span {
+            color: #39ff14;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            text-shadow: 0 0 6px #39ff14;
+        }
 
-    button {
-      background: linear-gradient(135deg, #00ffff, #ff00ff);
-      color: #000;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 0 15px #00ffff80;
-      transition: 0.3s;
-      margin-top: auto;
-    }
+        .data-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
 
-    button:hover {
-      box-shadow: 0 0 25px #ff00ff;
-    }
+        .data-row {
+            display: flex;
+            gap: 10px;
+        }
 
-    .btn-group {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+        .data-row input {
+            flex: 1;
+        }
 
-    .btn-secondary {
-      background: transparent;
-      border: 1px solid #00ffff;
-      color: #00ffff;
-      box-shadow: none;
-    }
-    .btn-secondary:hover { background: #00ffff20; }
+        .delete-row {
+            padding: 0 14px;
+            font-size: 1.2rem;
+            background: transparent;
+            border: 1px solid #ff2d95;
+            border-radius: 8px;
+            color: #ff2d95;
+            cursor: pointer;
+            box-shadow: 0 0 6px rgba(255, 45, 149, 0.5);
+            transition: all 0.2s;
+        }
 
-    .btn-danger {
-      background: transparent;
-      border: 1px solid #ff00ff;
-      color: #ff00ff;
-      box-shadow: none;
-    }
-    .btn-danger:hover { background: #ff00ff20; }
+        .delete-row:hover {
+            background: #ff2d95;
+            color: #000;
+            box-shadow: 0 0 18px #ff2d95;
+        }
 
-    /* データ入力エリア */
-    .data-input-section {
-      background: #1a1a30;
-      border: 1px solid #00ffff40;
-      border-radius: 12px;
-      padding: 20px;
-      margin-top: 20px;
-    }
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
 
-    .data-input-section h3 {
-      color: #ff00ff;
-      margin-bottom: 16px;
-      text-shadow: 0 0 5px #ff00ff;
-    }
+        .btn {
+            padding: 10px 22px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
 
-    .data-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px 20px;
-      max-width: 600px;
-    }
+        .btn-add {
+            background: transparent;
+            color: #39ff14;
+            border: 1px solid #39ff14;
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
+        }
 
-    .data-row label {
-      color: #00ffff;
-      text-shadow: 0 0 3px #00ffff;
-      font-size: 0.9rem;
-    }
+        .btn-add:hover {
+            background: #39ff14;
+            color: #000;
+            box-shadow: 0 0 24px #39ff14;
+        }
 
-    .data-row input {
-      background: #000020;
-      border: 1px solid #00ffff60;
-      color: white;
-      padding: 8px;
-      border-radius: 6px;
-      width: 100%;
-    }
+        .btn-generate {
+            flex: 1;
+            background: #ff2d95;
+            color: #000;
+            font-weight: 700;
+            box-shadow: 0 0 15px rgba(255, 45, 149, 0.7);
+        }
 
-    .data-row input:focus {
-      border-color: #ff00ff;
-      box-shadow: 0 0 8px #ff00ff;
-      outline: none;
-    }
+        .btn-generate:hover {
+            box-shadow:
+                0 0 25px #ff2d95,
+                0 0 50px #ff2d95;
+        }
 
-    .input-actions {
-      margin-top: 20px;
-    }
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #b537f2;
+            background: rgba(0, 0, 0, 0.35);
+            box-shadow:
+                inset 0 0 30px rgba(181, 55, 242, 0.15),
+                0 0 20px rgba(181, 55, 242, 0.2);
+        }
 
-    /* 説明セクション */
-    .explanation h2 {
-      color: #ffff00;
-      text-shadow: 0 0 5px #ffff00;
-    }
+        .empty-message {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.3);
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+            pointer-events: none;
+            text-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+        }
 
-    .card {
-      background: #1a1a30;
-      border: 1px solid #00ffff30;
-      margin-top: 10px;
-      padding: 15px;
-      border-radius: 8px;
-    }
-
-    .card h3 { color: #00ffff; }
-    .card p { color: #ccc; }
-
-    .howto {
-      background: #220022;
-      border: 1px solid #ff00ff;
-      padding: 20px;
-      border-radius: 12px;
-      margin-top: 20px;
-    }
-
-    .howto h3 { color: #ffff00; }
-    .howto ol { color: #ccc; line-height: 2; }
-    .howto code { background: #000; padding: 2px 6px; color: #00ffff; }
-  </style>
+        @media (max-width: 600px) {
+            .container {
+                padding: 16px;
+            }
+            .chart-wrapper {
+                height: 300px;
+            }
+            .data-row {
+                flex-wrap: wrap;
+            }
+            .data-row input {
+                flex: 1 1 100%;
+            }
+            .delete-row {
+                flex: 1 1 auto;
+                padding: 8px 0;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1><span>📊</span> グラフ作成</h1>
-    <p class="subtitle">データを入力してグラフを描こう</p>
+    <div class="container">
+        <h1>📊 GRAPH LAB</h1>
+        <p class="subtitle">Neon Chart Generator</p>
 
-    <div class="chart-area">
-      <div id="chartTitleDisplay" class="chart-title-display">グラフ名</div>
-      <canvas id="myChart"></canvas>
+        <div class="control-panel">
+            <div class="form-group">
+                <label for="chart-type">グラフの種類</label>
+                <select id="chart-type">
+                    <option value="bar">棒グラフ</option>
+                    <option value="line">折れ線グラフ</option>
+                    <option value="pie">円グラフ</option>
+                    <option value="doughnut">ドーナツグラフ</option>
+                    <option value="radar">レーダーチャート</option>
+                    <option value="area">エリアグラフ</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <div class="data-header">
+                <span>データ入力</span>
+                <button class="btn btn-add" id="add-row">＋ 行を追加</button>
+            </div>
+            <div class="data-rows" id="data-rows">
+                <!-- JSで行が追加される -->
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn btn-generate" id="generate">⚡ グラフを生成</button>
+        </div>
+
+        <div class="chart-wrapper">
+            <canvas id="myChart"></canvas>
+        </div>
     </div>
 
-    <div class="controls">
-      <div class="control-group">
-        <label for="graphTitle">グラフ名</label>
-        <input type="text" id="graphTitle" placeholder="グラフタイトルを入力" value="グラフ名">
-      </div>
-      <div class="control-group">
-        <label for="dataCount">データ数</label>
-        <input type="number" id="dataCount" min="1" max="12" value="3">
-      </div>
-      <div class="control-group">
-        <label for="chartType">種類</label>
-        <select id="chartType">
-          <option value="bar">棒</option>
-          <option value="line">折れ線</option>
-          <option value="pie">円</option>
-          <option value="doughnut">ドーナツ</option>
-        </select>
-      </div>
-      <div class="btn-group">
-        <button id="updateBtn">描画</button>
-        <button id="resetBtn" class="btn-danger">全消去</button>
-        <button id="undoBtn" class="btn-secondary" disabled>巻き戻し</button>
-      </div>
-    </div>
-
-    <div class="data-input-section">
-      <h3>💾 データ入力</h3>
-      <div id="dataInputContainer" class="data-grid"></div>
-      <div class="input-actions">
-        <button id="clearInputsBtn" class="btn-danger" style="padding:8px 16px;">入力欄クリア</button>
-      </div>
-    </div>
-
-    <div class="explanation">
-      <h2>📖 グラフの種類と使い方</h2>
-      <div class="card">
-        <h3>📊 棒グラフ</h3>
-        <p>カテゴリー比較に最適</p>
-      </div>
-      <div class="card">
-        <h3>📈 折れ線グラフ</h3>
-        <p>トレンドや変化を表示</p>
-      </div>
-      <div class="card">
-        <h3>🥧 円グラフ</h3>
-        <p>割合を視覚化</p>
-      </div>
-      <div class="card">
-        <h3>🍩 ドーナツグラフ</h3>
-        <p>割合表示＋中心情報</p>
-      </div>
-      <div class="howto">
-        <h3>💡 使い方</h3>
-        <ol>
-          <li>グラフ名を入力（例: 月間売上）</li>
-          <li>データ数で項目数設定</li>
-          <li>ラベルと値を入力</li>
-          <li>「描画」ボタンで表示</li>
-          <li>「全消去」でリセット、「巻き戻し」で1ステップ戻る</li>
-        </ol>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const ctx = document.getElementById('myChart').getContext('2d');
-    let chart;
-    let history = [];
-
-    const neonColors = ['#00ffff', '#ff00ff', '#ffff00', '#00ff88', '#ff6600', '#ff3388', '#33ccff', '#ccff00', '#ff0033', '#55ffff', '#ff55ff', '#ffff55'];
-    const neonBorder = ['#00ffff', '#ff00ff', '#ffff00', '#00ff88', '#ff6600', '#ff3388', '#33ccff', '#ccff00', '#ff0033', '#55ffff', '#ff55ff', '#ffff55'];
-
-    // グラフ名表示を更新
-    function updateTitleDisplay(title) {
-      document.getElementById('chartTitleDisplay').textContent = title || 'グラフ名';
-    }
-
-    function generateInputs(count, savedLabels = [], savedValues = []) {
-      const container = document.getElementById('dataInputContainer');
-      container.innerHTML = '';
-      for (let i = 1; i <= count; i++) {
-        const lb = document.createElement('div');
-        lb.className = 'data-row';
-        const lv = savedLabels[i-1] ?? '';
-        lb.innerHTML = `<label for="label_${i}" style="color:${neonColors[(i-1)%neonColors.length]}">ラベル${i}</label>
-                        <input type="text" id="label_${i}" value="${lv.replace(/"/g,'&quot;')}" style="border-color:${neonColors[(i-1)%neonColors.length]}">`;
-        container.appendChild(lb);
-
-        const vb = document.createElement('div');
-        vb.className = 'data-row';
-        const vv = savedValues[i-1] !== null && savedValues[i-1] !== undefined ? savedValues[i-1] : '';
-        vb.innerHTML = `<label for="value_${i}" style="color:${neonColors[(i-1)%neonColors.length]}">値${i}</label>
-                        <input type="number" id="value_${i}" value="${vv}" step="any" style="border-color:${neonColors[(i-1)%neonColors.length]}">`;
-        container.appendChild(vb);
-      }
-    }
-
-    // 状態保存（グラフ名も含める）
-    function saveState() {
-      const title = document.getElementById('graphTitle').value.trim() || 'グラフ名';
-      const count = parseInt(document.getElementById('dataCount').value) || 0;
-      const type = document.getElementById('chartType').value;
-      const labels = [];
-      const values = [];
-      for (let i=1; i<=count; i++) {
-        const lbl = document.getElementById(`label_${i}`);
-        const val = document.getElementById(`value_${i}`);
-        if (!lbl || !val) break;
-        labels.push(lbl.value.trim());
-        const v = val.value === '' ? null : parseFloat(val.value);
-        values.push(v);
-      }
-      return { title, count, type, labels, values };
-    }
-
-    function restoreState(state) {
-      document.getElementById('graphTitle').value = state.title || 'グラフ名';
-      document.getElementById('dataCount').value = state.count;
-      document.getElementById('chartType').value = state.type;
-      generateInputs(state.count, state.labels, state.values);
-      updateTitleDisplay(state.title);
-      
-      const labels = [], values = [];
-      state.labels.forEach((l,i)=>{
-        if (state.values[i] !== null) {
-          labels.push(l || `項目${i+1}`);
-          values.push(state.values[i]);
+    <script>
+        // ===== 初期データ行 =====
+        function addRow(label = '', value = '') {
+            const container = document.getElementById('data-rows');
+            const row = document.createElement('div');
+            row.className = 'data-row';
+            row.innerHTML = `
+                <input type="text" class="label-input" placeholder="項目名" value="${label}">
+                <input type="number" class="value-input" placeholder="数値" value="${value}" step="any">
+                <button class="delete-row" type="button" aria-label="行を削除">✕</button>
+            `;
+            container.appendChild(row);
         }
-      });
-      createChart(state.type, labels, values, state.title);
-      document.getElementById('undoBtn').disabled = history.length === 0;
-    }
 
-    function createChart(type, labels, data, title = 'グラフ名') {
-      if (chart) chart.destroy();
-      const isPie = (type==='pie' || type==='doughnut');
-      const bg = data.map((_,i)=>neonColors[i%neonColors.length] + (isPie ? 'CC' : '88'));
-      const config = {
-        type: type,
-        data: {
-          labels,
-          datasets: [{
-            data,
-            label: title,
-            backgroundColor: bg,
-            borderColor: neonBorder,
-            borderWidth: 2,
-            pointBackgroundColor: neonColors,
-            pointBorderColor: '#fff',
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { 
-              display: isPie, 
-              labels: { color: '#00ffff' },
-              title: {
-                display: true,
-                text: title,
-                color: '#ffff00',
-                font: { size: 16, weight: 'bold' },
-                padding: { bottom: 10 }
-              }
-            },
-            tooltip: { backgroundColor: '#000', titleColor: '#00ffff', borderColor: '#ff00ff' }
-          },
-          scales: isPie ? {} : {
-            x: { ticks: { color: '#00ffff' }, grid: { color: '#00ffff22' } },
-            y: { beginAtZero: true, ticks: { color: '#ff00ff' }, grid: { color: '#ff00ff22' } }
-          }
+        // 初期状態は3行
+        addRow('売上', '1200');
+        addRow('コスト', '800');
+        addRow('利益', '400');
+
+        // ===== 行の追加・削除 =====
+        document.getElementById('add-row').addEventListener('click', () => {
+            addRow();
+            attachDeleteEvents();
+        });
+
+        function attachDeleteEvents() {
+            document.querySelectorAll('.delete-row').forEach(btn => {
+                btn.removeEventListener('click', handleDelete);
+                btn.addEventListener('click', handleDelete);
+            });
         }
-      };
-      chart = new Chart(ctx, config);
-      updateTitleDisplay(title);
-    }
 
-    function init() {
-      generateInputs(3);
-      updateTitleDisplay('グラフ名');
-      createChart('bar', [], [], 'グラフ名');
-      document.getElementById('undoBtn').disabled = true;
-    }
-
-    // イベント
-    document.getElementById('dataCount').addEventListener('change', function(){
-      let c = parseInt(this.value) || 1;
-      if (c<1) c=1;
-      if (c>12) c=12;
-      this.value = c;
-      const old = saveState();
-      const newLabels = [], newValues = [];
-      for (let i=0;i<c;i++) {
-        newLabels.push(old.labels[i] || '');
-        newValues.push(old.values[i] !== undefined ? old.values[i] : null);
-      }
-      generateInputs(c, newLabels, newValues);
-    });
-
-    document.getElementById('updateBtn').addEventListener('click', ()=>{
-      history.push(saveState());
-      if (history.length>5) history.shift();
-      const st = saveState();
-      const labels = [], values = [];
-      st.labels.forEach((l,i)=>{
-        if (st.values[i] !== null) {
-          labels.push(l || `項目${i+1}`);
-          values.push(st.values[i]);
+        function handleDelete(e) {
+            const rows = document.querySelectorAll('#data-rows .data-row');
+            if (rows.length > 1) {
+                e.target.closest('.data-row').remove();
+            } else {
+                alert('最低でも1行は必要です');
+            }
         }
-      });
-      createChart(st.type, labels, values, st.title);
-      document.getElementById('undoBtn').disabled = false;
-    });
 
-    document.getElementById('resetBtn').addEventListener('click', ()=>{
-      history.push(saveState());
-      if (history.length>5) history.shift();
-      document.getElementById('graphTitle').value = 'グラフ名';
-      document.getElementById('dataCount').value = 3;
-      document.getElementById('chartType').value = 'bar';
-      generateInputs(3);
-      createChart('bar', [], [], 'グラフ名');
-      document.getElementById('undoBtn').disabled = false;
-    });
+        attachDeleteEvents();
 
-    document.getElementById('undoBtn').addEventListener('click', ()=>{
-      if (history.length) {
-        const prev = history.pop();
-        restoreState(prev);
-        document.getElementById('undoBtn').disabled = history.length===0;
-      }
-    });
+        // ===== グラフ生成 =====
+        let chart = null;
 
-    document.getElementById('clearInputsBtn').addEventListener('click', ()=>{
-      const cnt = parseInt(document.getElementById('dataCount').value) || 3;
-      generateInputs(cnt);
-    });
+        document.getElementById('generate').addEventListener('click', () => {
+            generateChart();
+        });
 
-    // グラフ名をリアルタイムで表示欄に反映（入力中）
-    document.getElementById('graphTitle').addEventListener('input', function(){
-      updateTitleDisplay(this.value.trim() || 'グラフ名');
-    });
+        function generateChart() {
+            const type = document.getElementById('chart-type').value;
+            const rows = document.querySelectorAll('#data-rows .data-row');
+            const labels = [];
+            const data = [];
 
-    init();
-  </script>
+            rows.forEach(row => {
+                const label = row.querySelector('.label-input').value.trim();
+                const val = row.querySelector('.value-input').value;
+                if (label === '') return;
+                labels.push(label);
+                const num = parseFloat(val);
+                data.push(isNaN(num) ? 0 : num);
+            });
+
+            if (labels.length === 0) {
+                alert('項目名を入力してください');
+                return;
+            }
+
+            const ctx = document.getElementById('myChart').getContext('2d');
+            if (chart) chart.destroy();
+
+            // ネオンカラーパレット
+            const neonColors = ['#ff2d95', '#00e5ff', '#39ff14', '#b537f2', '#ffb347', '#ff2d2d', '#00ffcc', '#ff77ff'];
+
+            let chartType = type;
+            let chartData;
+            let chartOptions;
+
+            // データセットを種類ごとに調整
+            if (type === 'pie' || type === 'doughnut') {
+                chartData = {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: neonColors.map(c => c + 'cc'),
+                        borderColor: neonColors,
+                        borderWidth: 2,
+                        hoverBorderColor: '#000',
+                    }]
+                };
+                chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff', font: { family: 'Rajdhani', size: 14 } }
+                        }
+                    }
+                };
+            } else if (type === 'radar') {
+                chartData = {
+                    labels: labels,
+                    datasets: [{
+                        label: 'データ',
+                        data: data,
+                        backgroundColor: 'rgba(0, 229, 255, 0.2)',
+                        borderColor: '#00e5ff',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#ff2d95',
+                        pointBorderColor: '#fff',
+                        pointRadius: 4,
+                        pointHoverRadius: 7,
+                    }]
+                };
+                chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff', font: { family: 'Rajdhani', size: 14 } }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            ticks: {
+                                color: '#fff',
+                                backdropColor: 'transparent',
+                                showLabelBackdrop: false
+                            },
+                            grid: { color: 'rgba(255,255,255,0.2)' },
+                            angleLines: { color: 'rgba(255,255,255,0.2)' },
+                            pointLabels: { color: '#fff', font: { size: 13 } }
+                        }
+                    }
+                };
+            } else if (type === 'bar') {
+                chartData = {
+                    labels: labels,
+                    datasets: [{
+                        label: 'データ',
+                        data: data,
+                        backgroundColor: neonColors,
+                        borderColor: neonColors.map(c => c + 'aa'),
+                        borderWidth: 2,
+                        borderRadius: 4,
+                    }]
+                };
+                chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#fff' } }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                };
+            } else { // line / area
+                chartType = 'line';
+                chartData = {
+                    labels: labels,
+                    datasets: [{
+                        label: 'データ',
+                        data: data,
+                        backgroundColor: 'rgba(255, 45, 149, 0.2)',
+                        borderColor: '#ff2d95',
+                        borderWidth: 3,
+                        pointBackgroundColor: neonColors,
+                        pointBorderColor: '#fff',
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        fill: type === 'area',
+                        tension: 0.4,
+                    }]
+                };
+                chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#fff' } }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                };
+            }
+
+            chart = new Chart(ctx, {
+                type: chartType,
+                data: chartData,
+                options: chartOptions
+            });
+        }
+
+        // 初期表示（サンプルグラフを自動生成）
+        window.addEventListener('DOMContentLoaded', () => {
+            generateChart();
+        });
+    </script>
 </body>
 </html>
