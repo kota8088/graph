@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 グラフ作成サイト</title>
+    <title>グラフ作成ツール</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js">
     </script>
@@ -13,17 +13,20 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             background: #0a0a0f;
             color: #fff;
             font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
             min-height: 100vh;
         }
+
         .container {
-            max-width: 1500px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
+
         header {
             text-align: center;
             padding: 18px 20px;
@@ -33,19 +36,22 @@
             background: #0d0f14;
             margin-bottom: 20px;
         }
+
         header h1 {
             color: #00f0ff;
             text-shadow: 0 0 15px #00f0ff, 0 0 40px rgba(0, 240, 255, 0.4);
-            font-size: 2.2rem;
+            font-size: 2rem;
             letter-spacing: 2px;
         }
+
         .main-layout {
             display: flex;
-            gap: 25px;
+            gap: 20px;
             align-items: stretch;
         }
+
         .sidebar {
-            width: 380px;
+            width: 360px;
             padding: 20px;
             background: #0d0f14;
             border: 2px solid #00f0ff;
@@ -55,6 +61,7 @@
             max-height: calc(100vh - 40px);
             overflow-y: auto;
         }
+
         .sidebar::-webkit-scrollbar {
             width: 6px;
         }
@@ -62,6 +69,7 @@
             background: #00f0ff;
             border-radius: 4px;
         }
+
         .chart-container {
             flex: 1;
             background: #0d0f14;
@@ -69,19 +77,21 @@
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 0 30px rgba(255, 0, 160, 0.15), inset 0 0 30px rgba(0, 0, 0, 0.5);
-            min-height: 620px;
+            min-height: 600px;
             position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
             min-width: 0;
         }
+
         #myChart {
             max-width: 100%;
-            max-height: 620px;
+            max-height: 600px;
             width: 100% !important;
             height: auto !important;
         }
+
         .label {
             display: block;
             margin: 12px 0 4px;
@@ -91,6 +101,7 @@
             text-transform: uppercase;
             font-weight: 600;
         }
+
         select,
         input[type="text"],
         input[type="number"] {
@@ -104,11 +115,13 @@
             transition: 0.3s;
             outline: none;
         }
+
         select:focus,
         input:focus {
             box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
             border-color: #ff00a0;
         }
+
         button {
             background: linear-gradient(135deg, #00f0ff, #ff00a0);
             color: #0a0a0f;
@@ -122,46 +135,55 @@
             letter-spacing: 0.5px;
             box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
         }
+
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 0 30px rgba(0, 240, 255, 0.5), 0 0 60px rgba(255, 0, 160, 0.3);
         }
+
         button:active {
             transform: translateY(1px);
         }
+
         .btn-group {
             display: flex;
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 12px;
             flex-wrap: wrap;
         }
+
         .btn-group button {
             flex: 1;
             padding: 10px;
             font-size: 13px;
         }
+
         #downloadBtn {
             width: 100%;
             margin-top: 20px;
             font-size: 16px;
             background: linear-gradient(135deg, #00ff41, #00f0ff);
         }
+
         .data-input {
             margin-top: 20px;
             border-top: 1px solid #333;
             padding-top: 15px;
         }
+
         .data-input h3 {
             color: #ff00a0;
             margin-bottom: 10px;
             font-size: 16px;
             text-shadow: 0 0 10px rgba(255, 0, 160, 0.3);
         }
+
         table#dataTable {
             width: 100%;
             border-collapse: collapse;
             margin-top: 5px;
         }
+
         #dataTable th,
         #dataTable td {
             padding: 4px 2px;
@@ -169,12 +191,14 @@
             text-align: center;
             position: relative;
         }
+
         #dataTable th {
             background: #1a1a2e;
             color: #ff00a0;
             font-size: 13px;
             font-weight: 600;
         }
+
         #dataTable td input {
             background: transparent;
             border: none;
@@ -184,11 +208,13 @@
             text-align: center;
             font-size: 13px;
         }
+
         #dataTable td input:focus {
             box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
             background: rgba(0, 240, 255, 0.05);
             border-radius: 4px;
         }
+
         #dataTable .del-row {
             background: transparent;
             border: none;
@@ -198,29 +224,19 @@
             padding: 2px 4px;
             line-height: 1;
         }
+
         #dataTable .del-row:hover {
             background: rgba(255, 0, 160, 0.1);
             border-radius: 4px;
         }
-        .del-series {
-            color: #ff00a0;
-            cursor: pointer;
-            font-weight: 700;
-            margin-left: 4px;
-            background: none;
-            border: none;
-            font-size: 12px;
-            padding: 0 2px;
-        }
-        .del-series:hover {
-            color: #ff6b35;
-        }
+
         .empty-msg {
             color: #888;
             text-align: center;
             padding: 40px;
             font-size: 18px;
         }
+
         @media (max-width: 900px) {
             .main-layout {
                 flex-direction: column;
@@ -233,6 +249,7 @@
                 min-height: 400px;
             }
         }
+
         @media (max-width: 600px) {
             .container {
                 padding: 10px;
@@ -249,6 +266,7 @@
                 font-size: 13px;
             }
         }
+
         /* 霓虹闪烁动画 */
         @keyframes neonPulse {
             0%,
@@ -261,10 +279,6 @@
         }
         .chart-container {
             animation: neonPulse 4s ease-in-out infinite;
-        }
-        /* 表格行悬停 */
-        #dataTable tbody tr:hover {
-            background: rgba(0, 240, 255, 0.05);
         }
     </style>
 </head>
@@ -290,16 +304,18 @@
                     <option value="heatmap">11. ヒートマップ</option>
                     <option value="sankey">12. サンキー</option>
                 </select>
+
                 <label class="label" for="chartTitle">🏷️ タイトル</label>
-                <input type="text" id="chartTitle" placeholder="グラフタイトルを入力..." value="グラフタイトル">
+                <input type="text" id="chartTitle" placeholder="グラフタイトル..." value="グラフタイトル">
+
                 <div class="data-input">
-                    <h3>🔢 データ入力</h3>
+                    <h3>📊 データ入力</h3>
                     <table id="dataTable"></table>
                     <div class="btn-group">
                         <button id="addRow">➕ 行追加</button>
-                        <button id="addSeries">📎 系列追加</button>
                     </div>
                 </div>
+
                 <button id="downloadBtn">💾 PNGダウンロード</button>
             </div>
             <div class="chart-container">
@@ -307,17 +323,15 @@
             </div>
         </div>
     </div>
+
     <script>
-        // ================== 全局状态 ==================
+        // ================== 状态管理（单一系列） ==================
         let chartInstance = null;
         let state = {
             chartType: 'bar',
             title: 'グラフタイトル',
             labels: ['項目1', '項目2', '項目3', '項目4'],
-            series: [
-                { name: '系列1', values: [10, 20, 15, 25] },
-                { name: '系列2', values: [8, 12, 10, 5] }
-            ]
+            values: [10, 20, 15, 25]
         };
 
         // ================== DOM 元素 ==================
@@ -325,107 +339,54 @@
         const chartTitleInput = document.getElementById('chartTitle');
         const dataTable = document.getElementById('dataTable');
         const addRowBtn = document.getElementById('addRow');
-        const addSeriesBtn = document.getElementById('addSeries');
         const downloadBtn = document.getElementById('downloadBtn');
         const canvas = document.getElementById('myChart');
 
-        // ================== 霓虹色板 ==================
-        const neonColors = [
-            '#00f0ff',
-            '#ff00a0',
-            '#00ff41',
-            '#ffde00',
-            '#ff6b35',
-            '#9d00ff',
-            '#00ffcc',
-            '#ff3881',
-            '#7fff00',
-            '#ff9500',
-            '#00aaff',
-            '#ff2d55'
-        ];
+        // 配色
+        const neonColors = ['#00f0ff', '#ff00a0', '#00ff41', '#ffde00', '#ff6b35', '#9d00ff', '#00ffcc', '#ff3881', '#7fff00', '#ff9500', '#00aaff', '#ff2d55'];
 
-        // ================== 工具函数 ==================
-        function percentile(sortedArr, p) {
-            const index = (sortedArr.length - 1) * p;
-            const lower = Math.floor(index);
-            const upper = Math.ceil(index);
-            if (lower === upper) return sortedArr[lower];
-            return sortedArr[lower] * (upper - index) + sortedArr[upper] * (index - lower);
-        }
-
-        // ================== 渲染数据表格 ==================
+        // ================== 表格渲染 ==================
         function renderTable() {
             dataTable.innerHTML = '';
-
-            // 表头
             const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
-            const thLabel = document.createElement('th');
-            thLabel.textContent = 'ラベル';
-            headerRow.appendChild(thLabel);
-
-            state.series.forEach((s, si) => {
-                const th = document.createElement('th');
-                th.style.position = 'relative';
-                const span = document.createElement('span');
-                span.textContent = s.name;
-                th.appendChild(span);
-                const delBtn = document.createElement('button');
-                delBtn.textContent = '×';
-                delBtn.className = 'del-series';
-                delBtn.title = '系列を削除';
-                delBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (state.series.length <= 1) {
-                        alert('少なくとも1つの系列が必要です。');
-                        return;
-                    }
-                    state.series.splice(si, 1);
-                    renderTable();
-                    renderChart();
-                });
-                th.appendChild(delBtn);
-                headerRow.appendChild(th);
-            });
-
-            const thOp = document.createElement('th');
-            thOp.textContent = '削除';
-            headerRow.appendChild(thOp);
-            thead.appendChild(headerRow);
+            const trHead = document.createElement('tr');
+            const th1 = document.createElement('th');
+            th1.textContent = 'ラベル';
+            const th2 = document.createElement('th');
+            th2.textContent = '値';
+            const th3 = document.createElement('th');
+            th3.textContent = '削除';
+            trHead.appendChild(th1);
+            trHead.appendChild(th2);
+            trHead.appendChild(th3);
+            thead.appendChild(trHead);
             dataTable.appendChild(thead);
 
-            // 表体
             const tbody = document.createElement('tbody');
-            state.labels.forEach((label, li) => {
+            state.labels.forEach((label, idx) => {
                 const tr = document.createElement('tr');
 
-                // 标签
                 const tdLabel = document.createElement('td');
                 const inputLabel = document.createElement('input');
                 inputLabel.type = 'text';
                 inputLabel.value = label;
                 inputLabel.addEventListener('input', () => {
-                    state.labels[li] = inputLabel.value;
+                    state.labels[idx] = inputLabel.value;
                 });
                 tdLabel.appendChild(inputLabel);
                 tr.appendChild(tdLabel);
 
-                // 系列值
-                state.series.forEach((s, si) => {
-                    const td = document.createElement('td');
-                    const inputVal = document.createElement('input');
-                    inputVal.type = 'number';
-                    inputVal.value = s.values[li] !== undefined ? s.values[li] : 0;
-                    inputVal.addEventListener('input', () => {
-                        const v = parseFloat(inputVal.value);
-                        s.values[li] = isNaN(v) ? 0 : v;
-                    });
-                    td.appendChild(inputVal);
-                    tr.appendChild(td);
+                const tdValue = document.createElement('td');
+                const inputValue = document.createElement('input');
+                inputValue.type = 'number';
+                inputValue.value = state.values[idx];
+                inputValue.addEventListener('input', () => {
+                    const v = parseFloat(inputValue.value);
+                    state.values[idx] = isNaN(v) ? 0 : v;
                 });
+                tdValue.appendChild(inputValue);
+                tr.appendChild(tdValue);
 
-                // 删除行
                 const tdDel = document.createElement('td');
                 const delBtn = document.createElement('button');
                 delBtn.textContent = '🗑️';
@@ -435,8 +396,8 @@
                         alert('少なくとも1つの行が必要です。');
                         return;
                     }
-                    state.labels.splice(li, 1);
-                    state.series.forEach(s => s.values.splice(li, 1));
+                    state.labels.splice(idx, 1);
+                    state.values.splice(idx, 1);
                     renderTable();
                     renderChart();
                 });
@@ -448,18 +409,14 @@
             dataTable.appendChild(tbody);
         }
 
-        // ================== Chart.js 图表渲染 ==================
+        // ================== Chart.js 辅助函数 ==================
         function renderChartJS(type, data, options) {
             if (chartInstance) {
                 chartInstance.destroy();
                 chartInstance = null;
             }
-            // 重置canvas尺寸（防止残留）
-            canvas.style.display = 'block';
-            const parent = canvas.parentElement;
-            canvas.width = parent.clientWidth - 40;
+            canvas.width = canvas.parentElement.clientWidth - 40;
             canvas.height = 600;
-
             const ctx = canvas.getContext('2d');
             chartInstance = new Chart(ctx, {
                 type: type,
@@ -467,40 +424,31 @@
                 options: options || {
                     responsive: true,
                     plugins: {
-                        title: {
-                            display: true,
-                            text: state.title,
-                            color: '#00f0ff',
-                            font: { size: 20 }
-                        }
+                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
                     }
                 }
             });
         }
 
-        // ================== 自定义绘制 ==================
         function setupCanvas() {
             if (chartInstance) {
                 chartInstance.destroy();
                 chartInstance = null;
             }
-            const parent = canvas.parentElement;
-            canvas.width = parent.clientWidth - 40;
+            canvas.width = canvas.parentElement.clientWidth - 40;
             canvas.height = 600;
             const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // 背景
             ctx.fillStyle = '#0d0f14';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             return ctx;
         }
 
-        // ---------- 箱ひげ図 ----------
+        // ================== 箱ひげ図 ==================
         function drawBoxPlot() {
             const ctx = setupCanvas();
             const W = canvas.width;
             const H = canvas.height;
-            const values = state.series[0].values.filter(v => !isNaN(v) && v !== null);
+            const values = state.values.filter(v => !isNaN(v));
             if (values.length === 0) {
                 ctx.fillStyle = '#888';
                 ctx.font = '18px sans-serif';
@@ -509,7 +457,6 @@
                 return;
             }
 
-            // 标题
             ctx.fillStyle = '#00f0ff';
             ctx.font = 'bold 20px sans-serif';
             ctx.textAlign = 'center';
@@ -518,6 +465,13 @@
             const sorted = [...values].sort((a, b) => a - b);
             const min = sorted[0];
             const max = sorted[sorted.length - 1];
+            const percentile = (arr, p) => {
+                const idx = (arr.length - 1) * p;
+                const lo = Math.floor(idx);
+                const hi = Math.ceil(idx);
+                if (lo === hi) return arr[lo];
+                return arr[lo] * (hi - idx) + arr[hi] * (idx - lo);
+            };
             const q1 = percentile(sorted, 0.25);
             const median = percentile(sorted, 0.5);
             const q3 = percentile(sorted, 0.75);
@@ -527,52 +481,27 @@
             const x = W / 2;
             const scaleY = (v) => H - 80 - ((v - yMin) / (yMax - yMin)) * (H - 160);
 
-            // 绘制坐标轴
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([]);
-            ctx.beginPath();
-            ctx.moveTo(60, H - 70);
-            ctx.lineTo(W - 60, H - 70);
-            ctx.stroke();
-
-            // 网格线
-            ctx.strokeStyle = '#1a1a2e';
-            for (let i = 0; i <= 5; i++) {
-                const gy = H - 70 - (i / 5) * (H - 160);
-                ctx.beginPath();
-                ctx.moveTo(60, gy);
-                ctx.lineTo(W - 60, gy);
-                ctx.stroke();
-            }
-
-            // 绘制箱体
+            // 箱体
             const boxW = 80;
-            ctx.fillStyle = 'rgba(0, 240, 255, 0.2)';
+            ctx.fillStyle = 'rgba(0,240,255,0.2)';
             ctx.strokeStyle = '#00f0ff';
             ctx.lineWidth = 2;
             ctx.fillRect(x - boxW / 2, scaleY(q3), boxW, scaleY(q1) - scaleY(q3));
             ctx.strokeRect(x - boxW / 2, scaleY(q3), boxW, scaleY(q1) - scaleY(q3));
-
             // 中位线
             ctx.strokeStyle = '#ff00a0';
-            ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(x - boxW / 2, scaleY(median));
             ctx.lineTo(x + boxW / 2, scaleY(median));
             ctx.stroke();
-
             // whisker
             ctx.strokeStyle = '#00ff41';
-            ctx.lineWidth = 2;
-            // 上 whisker
             ctx.beginPath();
             ctx.moveTo(x, scaleY(q3));
             ctx.lineTo(x, scaleY(max));
             ctx.moveTo(x - boxW / 4, scaleY(max));
             ctx.lineTo(x + boxW / 4, scaleY(max));
             ctx.stroke();
-            // 下 whisker
             ctx.beginPath();
             ctx.moveTo(x, scaleY(q1));
             ctx.lineTo(x, scaleY(min));
@@ -580,7 +509,7 @@
             ctx.lineTo(x + boxW / 4, scaleY(min));
             ctx.stroke();
 
-            // 离群值
+            // 离群
             const iqr = q3 - q1;
             sorted.forEach(v => {
                 if (v < q1 - 1.5 * iqr || v > q3 + 1.5 * iqr) {
@@ -588,12 +517,9 @@
                     ctx.arc(x, scaleY(v), 4, 0, Math.PI * 2);
                     ctx.fillStyle = '#ff6b35';
                     ctx.fill();
-                    ctx.strokeStyle = '#ff6b35';
-                    ctx.stroke();
                 }
             });
 
-            // 标签
             ctx.fillStyle = '#aaa';
             ctx.font = '12px sans-serif';
             ctx.textAlign = 'left';
@@ -609,42 +535,30 @@
             ctx.fillText(String(max), 60, scaleY(max) + 4);
         }
 
-        // ---------- ヒートマップ ----------
+        // ================== ヒートマップ ==================
         function drawHeatmap() {
             const ctx = setupCanvas();
             const W = canvas.width;
             const H = canvas.height;
-
             ctx.fillStyle = '#00f0ff';
             ctx.font = 'bold 20px sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText(state.title, W / 2, 30);
 
             const rows = state.labels.length;
-            const cols = state.series.length;
-            if (rows === 0 || cols === 0) {
-                ctx.fillStyle = '#888';
-                ctx.font = '18px sans-serif';
-                ctx.fillText('データがありません', W / 2, H / 2);
-                return;
-            }
-
-            const allValues = [];
-            state.series.forEach(s => s.values.forEach(v => {
-                if (!isNaN(v)) allValues.push(v);
-            }));
-            if (allValues.length === 0) return;
-            const minVal = Math.min(...allValues);
-            const maxVal = Math.max(...allValues);
+            if (rows === 0) return;
+            const values = state.values.map(v => isNaN(v) ? 0 : v);
+            const maxVal = Math.max(...values);
+            const minVal = Math.min(...values);
             const range = maxVal - minVal || 1;
 
-            const margin = { top: 70, left: 120, right: 50, bottom: 50 };
+            const margin = { top: 50, left: 120, right: 40, bottom: 50 };
             const gridW = W - margin.left - margin.right;
             const gridH = H - margin.top - margin.bottom;
-            const cellW = gridW / cols;
-            const cellH = gridH / rows;
+            const cellW = gridW / Math.max(1, rows);
+            const cellH = 40;
 
-            // 左侧标签
+            // 横轴标签
             ctx.fillStyle = '#eee';
             ctx.font = '13px sans-serif';
             ctx.textAlign = 'right';
@@ -652,409 +566,264 @@
                 ctx.fillText(state.labels[i], margin.left - 10, margin.top + i * cellH + cellH / 2 + 4);
             }
 
-            // 顶部系列名
-            ctx.fillStyle = '#ff00a0';
-            ctx.textAlign = 'center';
-            for (let j = 0; j < cols; j++) {
-                ctx.fillText(state.series[j].name, margin.left + j * cellW + cellW / 2, margin.top - 15);
-            }
-
-            // 颜色函数
-            const heatColor = (t) => {
+            // 色块
+            for (let i = 0; i < rows; i++) {
+                const t = (values[i] - minVal) / range;
                 const r = Math.min(255, Math.floor(t * 255));
                 const b = Math.min(255, Math.floor((1 - t) * 255));
-                const g = Math.min(255, Math.floor(0.2 * t * 255));
-                return `rgb(${r},${g},${b})`;
-            };
-
-            // 绘制格子
-            for (let i = 0; i < rows; i++) {
-                for (let j = 0; j < cols; j++) {
-                    const v = state.series[j].values[i];
-                    const t = isNaN(v) ? 0 : (v - minVal) / range;
-                    ctx.fillStyle = heatColor(Math.max(0, Math.min(1, t)));
-                    ctx.fillRect(margin.left + j * cellW, margin.top + i * cellH, cellW - 2, cellH - 2);
-                    // 文本
-                    ctx.fillStyle = t > 0.6 ? '#000' : '#fff';
-                    ctx.font = '12px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(isNaN(v) ? '-' : Math.round(v), margin.left + j * cellW + cellW / 2, margin.top + i * cellH +
-                        cellH / 2 + 4);
-                }
+                const g = Math.min(255, Math.floor(100 * t));
+                ctx.fillStyle = `rgb(${r},${g},${b})`;
+                ctx.fillRect(margin.left + i * cellW, margin.top, cellW - 2, cellH - 2);
+                ctx.fillStyle = t > 0.6 ? '#000' : '#fff';
+                ctx.textAlign = 'center';
+                ctx.font = '12px sans-serif';
+                ctx.fillText(String(values[i]), margin.left + i * cellW + cellW / 2, margin.top + cellH / 2 + 4);
             }
 
-            // 网格线
+            // 网格
             ctx.strokeStyle = '#0d0f14';
             ctx.lineWidth = 1;
             for (let i = 0; i <= rows; i++) {
                 ctx.beginPath();
-                ctx.moveTo(margin.left, margin.top + i * cellH);
-                ctx.lineTo(margin.left + gridW, margin.top + i * cellH);
-                ctx.stroke();
-            }
-            for (let j = 0; j <= cols; j++) {
-                ctx.beginPath();
-                ctx.moveTo(margin.left + j * cellW, margin.top);
-                ctx.lineTo(margin.left + j * cellW, margin.top + gridH);
+                ctx.moveTo(margin.left + i * cellW, margin.top);
+                ctx.lineTo(margin.left + i * cellW, margin.top + cellH);
                 ctx.stroke();
             }
         }
 
-        // ---------- サンキー ----------
+        // ================== サンキー（簡易版） ==================
         function drawSankey() {
             const ctx = setupCanvas();
             const W = canvas.width;
             const H = canvas.height;
-
             ctx.fillStyle = '#00f0ff';
             ctx.font = 'bold 20px sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText(state.title, W / 2, 30);
 
-            const nLeft = state.labels.length;
-            const nRight = state.series.length;
-            if (nLeft === 0 || nRight === 0) {
-                ctx.fillStyle = '#888';
-                ctx.font = '18px sans-serif';
-                ctx.fillText('データがありません', W / 2, H / 2);
-                return;
-            }
-
-            const leftX = 80;
-            const rightX = W - 140;
+            const n = state.labels.length;
+            if (n === 0) return;
+            const values = state.values.map(v => isNaN(v) ? 0 : v);
+            const maxV = Math.max(...values, 1);
+            const leftX = 60;
+            const rightX = W - 20;
             const topY = 60;
             const botY = H - 60;
-            const leftY = (i) => topY + ((i + 0.5) * (botY - topY) / nLeft);
-            const rightY = (j) => topY + ((j + 0.5) * (botY - topY) / nRight);
+            const yPos = (i) => topY + ((i + 0.5) * (botY - topY) / n);
 
-            // 绘制左侧节点
+            // 左端标签
+            ctx.fillStyle = '#fff';
+            ctx.font = '13px sans-serif';
+            ctx.textAlign = 'right';
             state.labels.forEach((label, i) => {
-                const y = leftY(i);
-                ctx.fillStyle = 'rgba(0, 240, 255, 0.3)';
-                ctx.strokeStyle = '#00f0ff';
-                ctx.lineWidth = 1;
-                ctx.fillRect(leftX - 15, y - 20, 15, 40);
-                ctx.strokeRect(leftX - 15, y - 20, 15, 40);
-                ctx.fillStyle = '#fff';
-                ctx.font = '13px sans-serif';
-                ctx.textAlign = 'right';
-                ctx.fillText(label, leftX - 25, y + 4);
+                ctx.fillText(label, leftX - 20, yPos(i) + 4);
             });
 
-            // 绘制右侧节点
-            state.series.forEach((s, j) => {
-                const y = rightY(j);
-                ctx.fillStyle = 'rgba(255, 0, 160, 0.3)';
-                ctx.strokeStyle = '#ff00a0';
-                ctx.lineWidth = 1;
-                ctx.fillRect(rightX, y - 20, 15, 40);
-                ctx.strokeRect(rightX, y - 20, 15, 40);
-                ctx.fillStyle = '#fff';
-                ctx.font = '13px sans-serif';
-                ctx.textAlign = 'left';
-                ctx.fillText(s.name, rightX + 25, y + 4);
+            // 右端值
+            ctx.fillStyle = '#ff00a0';
+            ctx.textAlign = 'left';
+            ctx.font = 'bold 13px sans-serif';
+            values.forEach((v, i) => {
+                ctx.fillText(String(v), rightX + 10, yPos(i) + 4);
             });
 
-            // 绘制连接线
-            ctx.globalAlpha = 0.7;
-            state.labels.forEach((label, i) => {
-                state.series.forEach((s, j) => {
-                    const v = s.values[i];
-                    if (isNaN(v) || v === 0) return;
-                    const lineWidth = Math.max(1, Math.min(Math.abs(v) / 2, 60));
-                    const x1 = leftX - 15;
-                    const y1 = leftY(i);
-                    const x2 = rightX;
-                    const y2 = rightY(j);
-                    const midX = (x1 + x2) / 2;
-
-                    const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
-                    gradient.addColorStop(0, '#00f0ff');
-                    gradient.addColorStop(1, '#ff00a0');
-                    ctx.strokeStyle = gradient;
-                    ctx.lineWidth = lineWidth;
-                    ctx.lineCap = 'round';
-                    ctx.beginPath();
-                    ctx.moveTo(x1, y1);
-                    ctx.quadraticCurveTo(midX, y1, midX, y2);
-                    ctx.lineTo(x2, y2);
-                    ctx.stroke();
-                });
+            // 线宽比例
+            const maxW = Math.min(W/4, 60);
+            values.forEach((v, i) => {
+                if (v === 0) return;
+                const lineWidth = Math.max(1, (Math.abs(v) / maxV) * maxW);
+                const y = yPos(i);
+                const grad = ctx.createLinearGradient(leftX, y, rightX, y);
+                grad.addColorStop(0, '#00f0ff');
+                grad.addColorStop(1, '#ff00a0');
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = lineWidth;
+                ctx.beginPath();
+                ctx.moveTo(leftX, y);
+                ctx.bezierCurveTo(leftX + 100, y, rightX - 100, y, rightX, y);
+                ctx.stroke();
             });
-            ctx.globalAlpha = 1;
         }
 
-        // ================== ヒストグラム補助 ==================
-        function histogramData(values) {
-            const data = values.filter(v => !isNaN(v));
-            if (data.length === 0) return { labels: [], counts: [] };
-            const binCount = Math.min(10, Math.max(5, Math.round(Math.sqrt(data.length))));
-            const min = Math.min(...data);
-            const max = Math.max(...data);
-            if (min === max) {
-                return {
-                    labels: [String(min)],
-                    counts: [data.length]
-                };
-            }
-            const binWidth = (max - min) / binCount;
-            const counts = new Array(binCount).fill(0);
-            data.forEach(v => {
-                let idx = Math.floor((v - min) / binWidth);
-                if (idx >= binCount) idx = binCount - 1;
-                counts[idx]++;
-            });
-            const labels = [];
-            for (let i = 0; i < binCount; i++) {
-                labels.push((min + i * binWidth).toFixed(1) + '〜' + (min + (i + 1) * binWidth).toFixed(1));
-            }
-            return { labels, counts };
-        }
-
-        // ================== 主渲染函数 ==================
+        // ================== メイン描画 ==================
         function renderChart() {
             const type = state.chartType;
 
-            // 特殊图表类型：自定义canvas绘制
-            if (type === 'boxplot') {
-                drawBoxPlot();
-                return;
-            }
-            if (type === 'heatmap') {
-                drawHeatmap();
-                return;
-            }
-            if (type === 'sankey') {
-                drawSankey();
-                return;
-            }
+            // カスタム描画
+            if (type === 'boxplot') return drawBoxPlot();
+            if (type === 'heatmap') return drawHeatmap();
+            if (type === 'sankey') return drawSankey();
 
-            // Chart.js 图表
-            if (type === 'bar') {
+            // Chart.js 共通部分
+            const labels = [...state.labels];
+            const values = [...state.values];
+
+            if (type === 'histogram') {
+                // ヒストグラム用にビン集計
+                const cleanValues = values.filter(v => !isNaN(v));
+                if (cleanValues.length === 0) {
+                    renderChartJS('bar', { labels: ['データなし'], datasets: [{ data: [0] }] });
+                    return;
+                }
+                const binCount = Math.min(8, Math.max(4, Math.round(Math.sqrt(cleanValues.length))));
+                const min = Math.min(...cleanValues);
+                const max = Math.max(...cleanValues);
+                if (min === max) {
+                    renderChartJS('bar', { labels: [String(min)], datasets: [{ data: [cleanValues.length] }] }, {
+                        responsive: true,
+                        plugins: { title: { display: true, text: state.title, color: '#00f0ff' } }
+                    });
+                    return;
+                }
+                const binSize = (max - min) / binCount;
+                const counts = new Array(binCount).fill(0);
+                cleanValues.forEach(v => {
+                    let idx = Math.floor((v - min) / binSize);
+                    if (idx === binCount) idx--;
+                    counts[idx]++;
+                });
+                const binLabels = [];
+                for (let i = 0; i < binCount; i++) {
+                    binLabels.push((min + i * binSize).toFixed(1) + '〜');
+                }
                 renderChartJS('bar', {
-                    labels: state.labels,
-                    datasets: [{
-                        label: state.series[0].name,
-                        data: state.series[0].values,
-                        backgroundColor: neonColors[0],
-                        borderColor: neonColors[0],
-                        borderWidth: 1,
-                        borderRadius: 6
-                    }]
-                }, {
-                    responsive: true,
-                    plugins: {
-                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#222' } },
-                        x: { grid: { color: '#222' } }
-                    }
-                });
-            } else if (type === 'line') {
-                const datasets = state.series.map((s, i) => ({
-                    label: s.name,
-                    data: s.values,
-                    borderColor: neonColors[i % neonColors.length],
-                    backgroundColor: 'transparent',
-                    pointBackgroundColor: neonColors[i % neonColors.length],
-                    tension: 0.4,
-                    borderWidth: 2
-                }));
-                renderChartJS('line', {
-                    labels: state.labels,
-                    datasets: datasets
-                }, {
-                    responsive: true,
-                    plugins: {
-                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#222' } },
-                        x: { grid: { color: '#222' } }
-                    }
-                });
-            } else if (type === 'pie') {
-                const data = [...state.series[0].values];
-                // 防止所有值为0
-                if (data.every(v => v === 0)) data.fill(1);
-                renderChartJS('pie', {
-                    labels: state.labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: neonColors.slice(0, state.labels.length),
-                        borderColor: '#0d0f14',
-                        borderWidth: 2
-                    }]
-                }, {
-                    responsive: true,
-                    plugins: {
-                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } },
-                        legend: { labels: { color: '#fff' } }
-                    }
-                });
-            } else if (type === 'horizontalBar') {
-                const datasets = state.series.map((s, i) => ({
-                    label: s.name,
-                    data: [...s.values],
-                    backgroundColor: neonColors[i % neonColors.length],
-                    borderColor: neonColors[i % neonColors.length],
-                    borderWidth: 1
-                }));
-                renderChartJS('bar', {
-                    labels: state.labels,
-                    datasets: datasets
-                }, {
-                    indexAxis: 'y',
-                    responsive: true,
-                    plugins: {
-                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
-                    },
-                    scales: {
-                        x: {
-                            stacked: true,
-                            grid: { color: '#222' }
-                        },
-                        y: {
-                            stacked: true,
-                            grid: { color: '#222' }
-                        }
-                    }
-                });
-            } else if (type === 'histogram') {
-                const values = state.series[0].values;
-                const { labels, counts } = histogramData(values);
-                renderChartJS('bar', {
-                    labels: labels,
+                    labels: binLabels,
                     datasets: [{
                         label: '頻度',
                         data: counts,
                         backgroundColor: neonColors[2],
                         borderColor: neonColors[2],
-                        borderWidth: 1,
-                        borderRadius: 4
-                    }]
-                }, {
-                    responsive: true,
-                    plugins: {
-                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#222' } },
-                        x: { grid: { color: '#222' } }
-                    }
-                });
-            } else if (type === 'scatter') {
-                const data = state.series[0].values.map((v, i) => ({ x: i + 1, y: v }));
-                renderChartJS('scatter', {
-                    datasets: [{
-                        label: state.series[0].name,
-                        data: data,
-                        backgroundColor: neonColors[0],
-                        pointRadius: 6,
-                        pointBackgroundColor: neonColors[0],
-                        borderColor: neonColors[0],
                         borderWidth: 1
                     }]
                 }, {
                     responsive: true,
-                    plugins: {
-                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#222' }
-                        },
-                        x: {
-                            grid: { color: '#222' },
-                            title: { display: true, text: 'index', color: '#aaa' }
-                        }
-                    }
+                    plugins: { title: { display: true, text: state.title, color: '#00f0ff' } },
+                    scales: { y: { beginAtZero: true } }
                 });
-            } else if (type === 'stackedBar') {
-                const datasets = state.series.map((s, i) => ({
-                    label: s.name,
-                    data: [...s.values],
-                    backgroundColor: neonColors[i % neonColors.length],
-                    borderColor: neonColors[i % neonColors.length],
-                    borderWidth: 1
-                }));
-                renderChartJS('bar', {
-                    labels: state.labels,
-                    datasets: datasets
-                }, {
-                    responsive: true,
-                    plugins: {
-                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
-                    },
-                    scales: {
-                        x: { stacked: true, grid: { color: '#222' } },
-                        y: { stacked: true, grid: { color: '#222' } }
-                    }
-                });
-            } else if (type === 'radar') {
-                const datasets = state.series.map((s, i) => ({
-                    label: s.name,
-                    data: [...s.values],
-                    borderColor: neonColors[i % neonColors.length],
-                    backgroundColor: neonColors[i % neonColors.length] + '55',
-                    pointBackgroundColor: neonColors[i % neonColors.length],
-                    pointRadius: 4,
-                    borderWidth: 2
-                }));
-                renderChartJS('radar', {
-                    labels: state.labels,
-                    datasets: datasets
-                }, {
-                    responsive: true,
-                    plugins: {
-                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
-                    },
-                    scales: {
-                        r: {
-                            beginAtZero: true,
-                            grid: { color: '#222' },
-                            pointLabels: { color: '#fff' }
-                        }
-                    }
-                });
-            } else if (type === 'bubble') {
-                const data = state.series[0].values.map((v, i) => ({
-                    x: i + 1,
-                    y: v,
-                    r: Math.max(4, Math.abs(v) / 2)
-                }));
-                renderChartJS('bubble', {
-                    datasets: [{
-                        label: state.series[0].name,
-                        data: data,
-                        backgroundColor: 'rgba(255, 0, 160, 0.3)',
-                        borderColor: '#ff00a0',
-                        borderWidth: 2
-                    }]
-                }, {
-                    responsive: true,
-                    plugins: {
-                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#222' } },
-                        x: { grid: { color: '#222' } }
-                    }
-                });
+                return;
             }
+
+            let data, options = {
+                responsive: true,
+                plugins: { title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } } }
+            };
+
+            switch (type) {
+                case 'bar':
+                    data = {
+                        labels: labels,
+                        datasets: [{
+                            label: '値',
+                            data: values,
+                            backgroundColor: neonColors[0],
+                            borderColor: neonColors[0],
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }]
+                    };
+                    break;
+                case 'line':
+                    data = {
+                        labels: labels,
+                        datasets: [{
+                            label: '値',
+                            data: values,
+                            borderColor: neonColors[0],
+                            backgroundColor: 'transparent',
+                            tension: 0.4,
+                            pointBackgroundColor: neonColors[0],
+                            borderWidth: 2
+                        }]
+                    };
+                    break;
+                case 'pie':
+                    data = {
+                        labels: labels,
+                        datasets: [{
+                            data: values,
+                            backgroundColor: neonColors.slice(0, labels.length),
+                            borderColor: '#0d0f14',
+                            borderWidth: 2
+                        }]
+                    };
+                    break;
+                case 'horizontalBar':
+                    data = {
+                        labels: labels,
+                        datasets: [{
+                            label: '値',
+                            data: values,
+                            backgroundColor: neonColors[0],
+                            borderColor: neonColors[0],
+                            borderWidth: 1
+                        }]
+                    };
+                    options.indexAxis = 'y';
+                    options.scales = { x: { beginAtZero: true } };
+                    break;
+                case 'scatter':
+                    data = {
+                        datasets: [{
+                            label: '値',
+                            data: values.map((v, i) => ({ x: i + 1, y: v })),
+                            backgroundColor: neonColors[0],
+                            pointRadius: 6,
+                            pointBackgroundColor: neonColors[0]
+                        }]
+                    };
+                    options.scales = { y: { beginAtZero: true }, x: { title: { display: true, text: 'index' } } };
+                    break;
+                case 'stackedBar':
+                    data = {
+                        labels: labels,
+                        datasets: [{
+                            label: '値',
+                            data: values,
+                            backgroundColor: neonColors[0],
+                            borderColor: neonColors[0]
+                        }]
+                    };
+                    options.scales = { x: { stacked: true }, y: { stacked: true } };
+                    break;
+                case 'radar':
+                    data = {
+                        labels: labels,
+                        datasets: [{
+                            label: '値',
+                            data: values,
+                            borderColor: neonColors[0],
+                            backgroundColor: neonColors[0] + '55',
+                            pointBackgroundColor: neonColors[0],
+                            pointRadius: 4
+                        }]
+                    };
+                    options.scales = { r: { beginAtZero: true } };
+                    break;
+                case 'bubble':
+                    data = {
+                        datasets: [{
+                            label: '値',
+                            data: values.map((v, i) => ({ x: i + 1, y: v, r: Math.max(4, Math.abs(v) / 2) })),
+                            backgroundColor: 'rgba(255, 0, 160, 0.3)',
+                            borderColor: '#ff00a0',
+                            borderWidth: 2
+                        }]
+                    };
+                    options.scales = { y: { beginAtZero: true }, x: { title: { display: true, text: 'index' } } };
+                    break;
+                default:
+                    data = { labels: [], datasets: [] };
+            }
+            renderChartJS(type, data, options);
         }
 
-        // ================== 更新标题 ==================
-        function updateChartTitle() {
+        // ================== 标题更新 ==================
+        function updateTitle() {
             state.title = chartTitleInput.value;
             if (chartInstance) {
                 chartInstance.options.plugins.title.text = state.title;
                 chartInstance.update();
-            }
-            // 如果是自定义绘制，直接重新渲染
-            if (['boxplot', 'heatmap', 'sankey'].includes(state.chartType)) {
+            } else if (['boxplot', 'heatmap', 'sankey'].includes(state.chartType)) {
                 renderChart();
             }
         }
@@ -1071,36 +840,20 @@
         // ================== 事件绑定 ==================
         chartTypeSelect.addEventListener('change', () => {
             state.chartType = chartTypeSelect.value;
-            chartTitleInput.value = state.title;
             renderChart();
         });
 
-        chartTitleInput.addEventListener('input', () => {
-            updateChartTitle();
-        });
+        chartTitleInput.addEventListener('input', updateTitle);
 
         addRowBtn.addEventListener('click', () => {
             state.labels.push('項目' + (state.labels.length + 1));
-            state.series.forEach(s => s.values.push(0));
+            state.values.push(0);
             renderTable();
             renderChart();
         });
 
-        addSeriesBtn.addEventListener('click', () => {
-            const num = state.series.length + 1;
-            state.series.push({
-                name: '系列' + num,
-                values: state.labels.map(() => 0)
-            });
-            renderTable();
-            renderChart();
-        });
+        downloadBtn.addEventListener('click', downloadPNG);
 
-        downloadBtn.addEventListener('click', () => {
-            downloadPNG();
-        });
-
-        // ================== 窗口大小变化 ==================
         window.addEventListener('resize', () => {
             if (['boxplot', 'heatmap', 'sankey'].includes(state.chartType)) {
                 renderChart();
