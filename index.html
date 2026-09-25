@@ -3,640 +3,1115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>グラフ作成サイト</title>
-    <!-- 絵文字ファビコン 📊 -->
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E">
-    <!-- フォント -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- グラフライブラリCDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-box-and-violin@3.2.0/dist/chartjs-chart-box-and-violin.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.0/dist/chartjs-chart-matrix.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-sankey@0.12.1/dist/chartjs-chart-sankey.min.js"></script>
-    <!-- スクリーンショット用 html2canvas -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-</head>
-<body>
-    <!-- =============== 1. HTML部分 =============== -->
-    <section id="graph-generator" class="graph-gen-section">
-        <div class="graph-gen-title-area">
-            <h1 class="graph-gen-site-title">📊 グラフ作成サイト</h1>
-            <span class="graph-gen-badge">AI Tools</span>
-        </div>
-
-        <div class="graph-gen-container">
-            <!-- コントロールパネル -->
-            <div class="graph-gen-controls">
-                <div class="graph-gen-card">
-                    <label class="graph-gen-label">グラフタイトル（任意）</label>
-                    <input type="text" id="graphTitleInput" class="graph-gen-input" placeholder="例: 月間売上データ" value="">
-                </div>
-
-                <div class="graph-gen-card">
-                    <label class="graph-gen-label">グラフ種類</label>
-                    <select id="graphTypeSelect" class="graph-gen-select">
-                        <option value="bar">棒グラフ</option>
-                        <option value="line">折れ線グラフ</option>
-                        <option value="pie">円グラフ</option>
-                        <option value="doughnut">帯グラフ</option>
-                        <option value="histogram">ヒストグラム</option>
-                        <option value="scatter">散布図</option>
-                        <option value="stackedBar">積み上げ棒グラフ</option>
-                        <option value="radar">レーダーチャート</option>
-                        <option value="bubble">バブルチャート</option>
-                        <option value="boxplot">箱ひげ図</option>
-                        <option value="heatmap">ヒートマップ</option>
-                        <option value="sankey">サンキーダイアグラム</option>
-                    </select>
-                </div>
-
-                <!-- データ入力（ラベルと値のみ） -->
-                <div class="graph-gen-card graph-gen-data-card">
-                    <label class="graph-gen-label">データ入力 (ラベルと値)</label>
-                    <div id="dataRowsContainer" class="graph-gen-rows"></div>
-                    <button id="addDataRowBtn" class="graph-gen-add-btn">+ データ行を追加</button>
-                </div>
-
-                <div class="graph-gen-card graph-gen-download-card">
-                    <button id="screenshotBtn" class="graph-gen-download-btn">📸 スクリーンショット保存</button>
-                </div>
-            </div>
-
-            <!-- チャート表示 -->
-            <div class="graph-gen-chart-area">
-                <div id="chartCard" class="graph-gen-chart-wrap">
-                    <canvas id="graphCanvas"></canvas>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- =============== 2. CSS部分 =============== -->
+    <title>📊 グラフ作成サイト</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js">
+    </script>
     <style>
-        :root {
-            --neon-blue: #00f3ff;
-            --neon-pink: #ff007a;
-            --neon-green: #39ff14;
-            --neon-yellow: #fff700;
-            --bg-dark: #0a0a12;
-            --card-bg: #14141f;
-            --text-color: #e0e0ff;
-            --border-neon: rgba(0, 243, 255, 0.5);
-        }
-
-        .graph-gen-section {
-            background: var(--bg-dark);
-            padding: 20px;
-            font-family: 'Rajdhani', sans-serif;
-            color: var(--text-color);
-            min-height: 100vh;
-            overflow-x: hidden;
+        * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
-        .graph-gen-section * { box-sizing: border-box; }
-
-        .graph-gen-title-area {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
+        body {
+            background: #0a0a0f;
+            color: #fff;
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
         }
-        .graph-gen-site-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(1.5rem, 3vw, 2.5rem);
-            font-weight: 900;
-            color: var(--neon-blue);
-            text-shadow: 0 0 10px var(--neon-blue), 0 0 30px var(--neon-blue), 0 0 50px var(--neon-blue);
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            padding: 18px 20px;
+            border-bottom: 2px solid #00f0ff;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.25);
+            border-radius: 0 0 20px 20px;
+            background: #0d0f14;
+            margin-bottom: 20px;
+        }
+        header h1 {
+            color: #00f0ff;
+            text-shadow: 0 0 15px #00f0ff, 0 0 40px rgba(0, 240, 255, 0.4);
+            font-size: 2.2rem;
             letter-spacing: 2px;
         }
-        .graph-gen-badge {
-            background: linear-gradient(45deg, var(--neon-pink), var(--neon-yellow));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            font-weight: 700;
-            font-size: 1.2rem;
-            border: 1px solid var(--neon-pink);
-            padding: 4px 12px;
-            border-radius: 30px;
-            box-shadow: 0 0 15px rgba(255, 0, 122, 0.5);
-            animation: neonPulse 1.5s infinite alternate;
-        }
-
-        .graph-gen-container {
+        .main-layout {
             display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
+            gap: 25px;
+            align-items: stretch;
         }
-        .graph-gen-controls {
-            flex: 0 0 380px;
+        .sidebar {
+            width: 380px;
+            padding: 20px;
+            background: #0d0f14;
+            border: 2px solid #00f0ff;
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #00f0ff;
+            border-radius: 4px;
+        }
+        .chart-container {
+            flex: 1;
+            background: #0d0f14;
+            border: 2px solid #ff00a0;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(255, 0, 160, 0.15), inset 0 0 30px rgba(0, 0, 0, 0.5);
+            min-height: 620px;
+            position: relative;
             display: flex;
-            flex-direction: column;
-            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            min-width: 0;
         }
-        .graph-gen-chart-area {
-            flex: 1 1 500px;
-            min-width: 300px;
+        #myChart {
+            max-width: 100%;
+            max-height: 620px;
+            width: 100% !important;
+            height: auto !important;
         }
-
-        .graph-gen-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-neon);
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.1);
-            backdrop-filter: blur(5px);
-        }
-        .graph-gen-label {
+        .label {
             display: block;
+            margin: 12px 0 4px;
+            font-size: 14px;
+            color: #00f0ff;
+            letter-spacing: 1px;
+            text-transform: uppercase;
             font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--neon-green);
-            text-shadow: 0 0 5px var(--neon-green);
         }
-        .graph-gen-input,
-        .graph-gen-select {
-            width: 100%;
-            background: #0d0d1a;
-            border: 1px solid #2a2a4a;
-            color: var(--text-color);
-            padding: 10px 12px;
+        select,
+        input[type="text"],
+        input[type="number"] {
+            background: #1a1a2e;
+            color: #00f0ff;
+            border: 1px solid #00f0ff;
             border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s;
+            padding: 10px 14px;
+            width: 100%;
+            font-size: 14px;
+            transition: 0.3s;
             outline: none;
         }
-        .graph-gen-input:focus,
-        .graph-gen-select:focus {
-            border-color: var(--neon-blue);
-            box-shadow: 0 0 15px var(--neon-blue);
+        select:focus,
+        input:focus {
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+            border-color: #ff00a0;
         }
-
-        .graph-gen-rows {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .graph-gen-data-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .graph-gen-data-row input {
-            flex: 1;
-            padding: 8px;
-            background: #0d0d1a;
-            border: 1px solid #2a2a4a;
-            color: var(--text-color);
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
-        .graph-gen-data-row input:focus {
-            border-color: var(--neon-pink);
-            box-shadow: 0 0 8px var(--neon-pink);
-        }
-        .graph-gen-del-btn {
-            background: transparent;
-            border: 1px solid #ff5555;
-            color: #ff5555;
-            border-radius: 6px;
-            cursor: pointer;
-            padding: 8px 12px;
-            transition: all 0.2s;
-        }
-        .graph-gen-del-btn:hover {
-            background: rgba(255, 85, 85, 0.2);
-            box-shadow: 0 0 10px rgba(255, 85, 85, 0.5);
-        }
-
-        .graph-gen-add-btn {
-            width: 100%;
-            padding: 10px;
-            background: linear-gradient(45deg, var(--neon-pink), var(--neon-yellow));
+        button {
+            background: linear-gradient(135deg, #00f0ff, #ff00a0);
+            color: #0a0a0f;
             border: none;
-            color: #000;
-            font-weight: 700;
             border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            box-shadow: 0 0 10px rgba(255, 0, 122, 0.5);
-        }
-        .graph-gen-add-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 20px rgba(255, 0, 122, 0.8);
-        }
-
-        .graph-gen-download-card { text-align: center; }
-        .graph-gen-download-btn {
             padding: 12px 20px;
-            background: linear-gradient(45deg, var(--neon-blue), var(--neon-green));
-            border: none;
-            color: #000;
-            font-weight: 700;
-            font-size: 1rem;
-            border-radius: 30px;
             cursor: pointer;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
-            transition: transform 0.2s, box-shadow 0.2s;
+            font-size: 14px;
+            font-weight: 700;
+            transition: 0.3s;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
         }
-        .graph-gen-download-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 30px rgba(0, 243, 255, 0.8);
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.5), 0 0 60px rgba(255, 0, 160, 0.3);
         }
-
-        .graph-gen-chart-wrap {
-            background: var(--card-bg);
-            border: 1px solid var(--border-neon);
-            border-radius: 16px;
-            padding: 15px;
-            box-shadow: 0 0 25px rgba(0, 243, 255, 0.3), inset 0 0 10px rgba(0, 243, 255, 0.1);
-            height: 100%;
+        button:active {
+            transform: translateY(1px);
+        }
+        .btn-group {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 300px;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
         }
-        #graphCanvas {
-            width: 100% !important;
-            height: 550px !important;
-            max-height: 80vh;
+        .btn-group button {
+            flex: 1;
+            padding: 10px;
+            font-size: 13px;
         }
-
-        @media (max-width: 768px) {
-            .graph-gen-container { flex-direction: column; }
-            .graph-gen-controls { flex: 0 0 100%; }
-            .graph-gen-chart-area { flex: 0 0 100%; }
-            #graphCanvas { height: 400px !important; }
-            .graph-gen-site-title { font-size: 1.5rem; }
+        #downloadBtn {
+            width: 100%;
+            margin-top: 20px;
+            font-size: 16px;
+            background: linear-gradient(135deg, #00ff41, #00f0ff);
         }
-
+        .data-input {
+            margin-top: 20px;
+            border-top: 1px solid #333;
+            padding-top: 15px;
+        }
+        .data-input h3 {
+            color: #ff00a0;
+            margin-bottom: 10px;
+            font-size: 16px;
+            text-shadow: 0 0 10px rgba(255, 0, 160, 0.3);
+        }
+        table#dataTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+        #dataTable th,
+        #dataTable td {
+            padding: 4px 2px;
+            border: 1px solid #2a2a4a;
+            text-align: center;
+            position: relative;
+        }
+        #dataTable th {
+            background: #1a1a2e;
+            color: #ff00a0;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        #dataTable td input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            width: 100%;
+            padding: 4px;
+            text-align: center;
+            font-size: 13px;
+        }
+        #dataTable td input:focus {
+            box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+            background: rgba(0, 240, 255, 0.05);
+            border-radius: 4px;
+        }
+        #dataTable .del-row {
+            background: transparent;
+            border: none;
+            color: #ff00a0;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px 4px;
+            line-height: 1;
+        }
+        #dataTable .del-row:hover {
+            background: rgba(255, 0, 160, 0.1);
+            border-radius: 4px;
+        }
+        .del-series {
+            color: #ff00a0;
+            cursor: pointer;
+            font-weight: 700;
+            margin-left: 4px;
+            background: none;
+            border: none;
+            font-size: 12px;
+            padding: 0 2px;
+        }
+        .del-series:hover {
+            color: #ff6b35;
+        }
+        .empty-msg {
+            color: #888;
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+        }
+        @media (max-width: 900px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                max-height: none;
+            }
+            .chart-container {
+                min-height: 400px;
+            }
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            .sidebar {
+                padding: 12px;
+            }
+            .chart-container {
+                padding: 10px;
+                min-height: 300px;
+            }
+            button {
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+        }
+        /* 霓虹闪烁动画 */
         @keyframes neonPulse {
-            from { opacity: 0.8; }
-            to { opacity: 1; }
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(0, 240, 255, 0.7);
+            }
+        }
+        .chart-container {
+            animation: neonPulse 4s ease-in-out infinite;
+        }
+        /* 表格行悬停 */
+        #dataTable tbody tr:hover {
+            background: rgba(0, 240, 255, 0.05);
         }
     </style>
-
-    <!-- =============== 3. JavaScript部分 =============== -->
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 AIグラフ作成ツール</h1>
+        </header>
+        <div class="main-layout">
+            <div class="sidebar">
+                <label class="label" for="chartType">📈 グラフタイプ</label>
+                <select id="chartType">
+                    <option value="bar">1. 棒グラフ</option>
+                    <option value="line">2. 折れ線グラフ</option>
+                    <option value="pie">3. 円グラフ</option>
+                    <option value="horizontalBar">4. 帯グラフ</option>
+                    <option value="histogram">5. ヒストグラム</option>
+                    <option value="scatter">6. 散布図</option>
+                    <option value="stackedBar">7. 積み上げ棒</option>
+                    <option value="radar">8. レーダー</option>
+                    <option value="bubble">9. バブル</option>
+                    <option value="boxplot">10. 箱ひげ図</option>
+                    <option value="heatmap">11. ヒートマップ</option>
+                    <option value="sankey">12. サンキー</option>
+                </select>
+                <label class="label" for="chartTitle">🏷️ タイトル</label>
+                <input type="text" id="chartTitle" placeholder="グラフタイトルを入力..." value="グラフタイトル">
+                <div class="data-input">
+                    <h3>🔢 データ入力</h3>
+                    <table id="dataTable"></table>
+                    <div class="btn-group">
+                        <button id="addRow">➕ 行追加</button>
+                        <button id="addSeries">📎 系列追加</button>
+                    </div>
+                </div>
+                <button id="downloadBtn">💾 PNGダウンロード</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+    </div>
     <script>
-        (function() {
-            const dataRowsContainer = document.getElementById('dataRowsContainer');
-            const addDataRowBtn = document.getElementById('addDataRowBtn');
-            const graphTitleInput = document.getElementById('graphTitleInput');
-            const graphTypeSelect = document.getElementById('graphTypeSelect');
-            const canvas = document.getElementById('graphCanvas');
-            const chartCard = document.getElementById('chartCard');
-            let chartInstance = null;
+        // ================== 全局状态 ==================
+        let chartInstance = null;
+        let state = {
+            chartType: 'bar',
+            title: 'グラフタイトル',
+            labels: ['項目1', '項目2', '項目3', '項目4'],
+            series: [
+                { name: '系列1', values: [10, 20, 15, 25] },
+                { name: '系列2', values: [8, 12, 10, 5] }
+            ]
+        };
 
-            const neonColors = ['#00f3ff', '#ff007a', '#39ff14', '#fff700', '#ff6b6b', '#a29bfe', '#fd79a8', '#55efc4', '#ff9f43', '#6c5ce7', '#00cec9', '#e17055'];
-            const colorCount = neonColors.length;
+        // ================== DOM 元素 ==================
+        const chartTypeSelect = document.getElementById('chartType');
+        const chartTitleInput = document.getElementById('chartTitle');
+        const dataTable = document.getElementById('dataTable');
+        const addRowBtn = document.getElementById('addRow');
+        const addSeriesBtn = document.getElementById('addSeries');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const canvas = document.getElementById('myChart');
 
-            // データ行追加（ラベルと値の2項目）
-            function addDataRow(label = '', value = '') {
-                const row = document.createElement('div');
-                row.className = 'graph-gen-data-row';
-                row.innerHTML = `
-                    <input type="text" class="data-label" placeholder="ラベル" value="${label}">
-                    <input type="text" class="data-value" placeholder="値" value="${value}">
-                    <button type="button" class="graph-gen-del-btn">🗑️</button>
-                `;
-                row.querySelector('.graph-gen-del-btn').addEventListener('click', function() {
-                    row.remove();
-                    updateChart();
-                });
-                row.querySelectorAll('input').forEach(input => {
-                    input.addEventListener('input', updateChart);
-                });
-                dataRowsContainer.appendChild(row);
-            }
+        // ================== 霓虹色板 ==================
+        const neonColors = [
+            '#00f0ff',
+            '#ff00a0',
+            '#00ff41',
+            '#ffde00',
+            '#ff6b35',
+            '#9d00ff',
+            '#00ffcc',
+            '#ff3881',
+            '#7fff00',
+            '#ff9500',
+            '#00aaff',
+            '#ff2d55'
+        ];
 
-            // データ収集
-            function collectData() {
-                const rows = dataRowsContainer.querySelectorAll('.graph-gen-data-row');
-                const labels = [];
-                const values = [];
-                rows.forEach(row => {
-                    const label = row.querySelector('.data-label').value.trim();
-                    const value = row.querySelector('.data-value').value.trim();
-                    if (label !== '' && value !== '') {
-                        labels.push(label);
-                        values.push(value);
-                    }
-                });
-                return { labels, values };
-            }
+        // ================== 工具函数 ==================
+        function percentile(sortedArr, p) {
+            const index = (sortedArr.length - 1) * p;
+            const lower = Math.floor(index);
+            const upper = Math.ceil(index);
+            if (lower === upper) return sortedArr[lower];
+            return sortedArr[lower] * (upper - index) + sortedArr[upper] * (index - lower);
+        }
 
-            // グラフ更新
-            function updateChart() {
-                const type = graphTypeSelect.value;
-                const title = graphTitleInput.value.trim();
-                const { labels, values } = collectData();
+        // ================== 渲染数据表格 ==================
+        function renderTable() {
+            dataTable.innerHTML = '';
 
-                if (chartInstance) chartInstance.destroy();
+            // 表头
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            const thLabel = document.createElement('th');
+            thLabel.textContent = 'ラベル';
+            headerRow.appendChild(thLabel);
 
-                const ctx = canvas.getContext('2d');
-                let data = { labels: [], datasets: [] };
-                let chartType = 'bar';
-
-                const len = labels.length;
-                const singleColor = (i) => ({
-                    borderColor: neonColors[i % colorCount],
-                    backgroundColor: neonColors[i % colorCount] + '99',
-                    borderWidth: 2,
-                    pointHoverRadius: 8,
-                    pointHoverBackgroundColor: neonColors[(i+3) % colorCount],
-                    shadowColor: neonColors[i % colorCount],
-                    shadowBlur: 20,
-                });
-
-                switch (type) {
-                    case 'bar':
-                        chartType = 'bar';
-                        data = {
-                            labels: labels,
-                            datasets: [{
-                                label: '値',
-                                data: values.map(v => parseFloat(v) || 0),
-                                backgroundColor: neonColors.map(c => c + '99'),
-                                borderColor: neonColors,
-                                borderWidth: 2,
-                                hoverBackgroundColor: neonColors.map(c => c + 'CC'),
-                            }]
-                        };
-                        break;
-                    case 'line':
-                        chartType = 'line';
-                        data = {
-                            labels: labels,
-                            datasets: [{
-                                label: '値',
-                                data: values.map(v => parseFloat(v) || 0),
-                                borderColor: neonColors[0],
-                                backgroundColor: neonColors[0] + '22',
-                                pointBackgroundColor: neonColors.map((_, i) => neonColors[i % colorCount]),
-                                pointBorderColor: '#fff',
-                                tension: 0.4,
-                                fill: true,
-                                ...singleColor(0)
-                            }]
-                        };
-                        break;
-                    case 'pie':
-                        chartType = 'pie';
-                        data = {
-                            labels: labels,
-                            datasets: [{
-                                data: values.map(v => parseFloat(v) || 0),
-                                backgroundColor: neonColors.map(c => c + 'BB'),
-                                borderColor: '#0a0a12',
-                                borderWidth: 3,
-                                hoverOffset: 20,
-                            }]
-                        };
-                        break;
-                    case 'doughnut':
-                        chartType = 'doughnut';
-                        data = {
-                            labels: labels,
-                            datasets: [{
-                                data: values.map(v => parseFloat(v) || 0),
-                                backgroundColor: neonColors.map(c => c + 'AA'),
-                                borderColor: '#0a0a12',
-                                borderWidth: 3,
-                                hoverOffset: 20,
-                            }]
-                        };
-                        break;
-                    case 'histogram':
-                        chartType = 'bar';
-                        data = {
-                            labels: labels,
-                            datasets: [{
-                                label: '頻度',
-                                data: values.map(v => parseFloat(v) || 0),
-                                backgroundColor: neonColors[2] + '88',
-                                borderColor: neonColors[2],
-                                borderWidth: 2,
-                                barThickness: 'flex',
-                            }]
-                        };
-                        break;
-                    case 'scatter':
-                        chartType = 'scatter';
-                        data = {
-                            datasets: [{
-                                label: '散布データ',
-                                data: labels.map((lab, i) => ({
-                                    x: parseFloat(lab) || i,
-                                    y: parseFloat(values[i]) || 0
-                                })),
-                                backgroundColor: neonColors[0] + 'AA',
-                                borderColor: neonColors[0],
-                                pointRadius: 6,
-                                pointHoverRadius: 10,
-                                borderWidth: 1,
-                            }]
-                        };
-                        break;
-                    case 'stackedBar':
-                        chartType = 'bar';
-                        data = {
-                            labels: labels,
-                            datasets: [{
-                                label: '値',
-                                data: values.map(v => parseFloat(v) || 0),
-                                backgroundColor: neonColors[1] + '66',
-                                borderColor: neonColors[1],
-                                borderWidth: 2,
-                                stack: 'stack1',
-                            }]
-                        };
-                        break;
-                    case 'radar':
-                        chartType = 'radar';
-                        data = {
-                            labels: labels,
-                            datasets: [{
-                                label: '値',
-                                data: values.map(v => parseFloat(v) || 0),
-                                backgroundColor: neonColors[3] + '44',
-                                borderColor: neonColors[3],
-                                pointBackgroundColor: neonColors[3],
-                                borderWidth: 3,
-                            }]
-                        };
-                        break;
-                    case 'bubble':
-                        chartType = 'bubble';
-                        // バブルサイズは値の大きさに比例させる（簡易実装）
-                        data = {
-                            datasets: [{
-                                label: 'バブル',
-                                data: labels.map((lab, i) => ({
-                                    x: parseFloat(lab) || i,
-                                    y: parseFloat(values[i]) || 0,
-                                    r: Math.abs(parseFloat(values[i])) * 0.5 || 5,
-                                })),
-                                backgroundColor: neonColors[4] + '88',
-                                borderColor: neonColors[4],
-                                borderWidth: 2,
-                                hoverRadius: 20,
-                            }]
-                        };
-                        break;
-                    case 'boxplot':
-                        chartType = 'boxplot';
-                        const boxData = values.map(val => {
-                            const arr = val.split(',').map(Number).filter(n => !isNaN(n));
-                            return arr.length > 0 ? arr : [0];
-                        });
-                        data = {
-                            labels: labels,
-                            datasets: [{
-                                label: '箱ひげ',
-                                data: boxData,
-                                backgroundColor: neonColors[5] + '77',
-                                borderColor: neonColors[5],
-                                borderWidth: 2,
-                                outlierColor: neonColors[1],
-                                itemStyle: 'circle',
-                                outlierRadius: 4,
-                            }]
-                        };
-                        break;
-                    case 'heatmap':
-                        chartType = 'matrix';
-                        // 値をそのまま強度（v）として使用
-                        const heatData = labels.map((lab, i) => ({
-                            x: lab,
-                            y: parseFloat(values[i]) || i,
-                            v: parseFloat(values[i]) || 1,
-                        }));
-                        data = {
-                            labels: labels,
-                            datasets: [{
-                                label: 'ヒートマップ',
-                                data: heatData,
-                                backgroundColor: (ctx) => {
-                                    const raw = ctx.raw.v;
-                                    if (raw > 0.5) return 'rgba(255, 0, 122, 0.8)';
-                                    if (raw > 0.2) return 'rgba(0, 243, 255, 0.7)';
-                                    return 'rgba(57, 255, 20, 0.5)';
-                                },
-                                borderColor: '#0a0a12',
-                                borderWidth: 1,
-                                borderRadius: 2,
-                            }]
-                        };
-                        break;
-                    case 'sankey':
-                        chartType = 'sankey';
-                        // from=ラベル, to=値, flow=値（簡易）
-                        const flowData = labels.map((lab, i) => ({
-                            from: lab,
-                            to: values[i],
-                            flow: parseFloat(values[i]) || 1,
-                        }));
-                        data = {
-                            labels: labels,
-                            datasets: [{
-                                label: 'サンキー',
-                                data: flowData,
-                                alternateColor: false,
-                                color: (ctx) => {
-                                    const colors = ['#00f3ff', '#ff007a', '#39ff14', '#fff700'];
-                                    return colors[ctx.dataIndex % colors.length];
-                                }
-                            }]
-                        };
-                        break;
-                    default:
+            state.series.forEach((s, si) => {
+                const th = document.createElement('th');
+                th.style.position = 'relative';
+                const span = document.createElement('span');
+                span.textContent = s.name;
+                th.appendChild(span);
+                const delBtn = document.createElement('button');
+                delBtn.textContent = '×';
+                delBtn.className = 'del-series';
+                delBtn.title = '系列を削除';
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (state.series.length <= 1) {
+                        alert('少なくとも1つの系列が必要です。');
                         return;
-                }
+                    }
+                    state.series.splice(si, 1);
+                    renderTable();
+                    renderChart();
+                });
+                th.appendChild(delBtn);
+                headerRow.appendChild(th);
+            });
 
-                const options = {
+            const thOp = document.createElement('th');
+            thOp.textContent = '削除';
+            headerRow.appendChild(thOp);
+            thead.appendChild(headerRow);
+            dataTable.appendChild(thead);
+
+            // 表体
+            const tbody = document.createElement('tbody');
+            state.labels.forEach((label, li) => {
+                const tr = document.createElement('tr');
+
+                // 标签
+                const tdLabel = document.createElement('td');
+                const inputLabel = document.createElement('input');
+                inputLabel.type = 'text';
+                inputLabel.value = label;
+                inputLabel.addEventListener('input', () => {
+                    state.labels[li] = inputLabel.value;
+                });
+                tdLabel.appendChild(inputLabel);
+                tr.appendChild(tdLabel);
+
+                // 系列值
+                state.series.forEach((s, si) => {
+                    const td = document.createElement('td');
+                    const inputVal = document.createElement('input');
+                    inputVal.type = 'number';
+                    inputVal.value = s.values[li] !== undefined ? s.values[li] : 0;
+                    inputVal.addEventListener('input', () => {
+                        const v = parseFloat(inputVal.value);
+                        s.values[li] = isNaN(v) ? 0 : v;
+                    });
+                    td.appendChild(inputVal);
+                    tr.appendChild(td);
+                });
+
+                // 删除行
+                const tdDel = document.createElement('td');
+                const delBtn = document.createElement('button');
+                delBtn.textContent = '🗑️';
+                delBtn.className = 'del-row';
+                delBtn.addEventListener('click', () => {
+                    if (state.labels.length <= 1) {
+                        alert('少なくとも1つの行が必要です。');
+                        return;
+                    }
+                    state.labels.splice(li, 1);
+                    state.series.forEach(s => s.values.splice(li, 1));
+                    renderTable();
+                    renderChart();
+                });
+                tdDel.appendChild(delBtn);
+                tr.appendChild(tdDel);
+
+                tbody.appendChild(tr);
+            });
+            dataTable.appendChild(tbody);
+        }
+
+        // ================== Chart.js 图表渲染 ==================
+        function renderChartJS(type, data, options) {
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+            // 重置canvas尺寸（防止残留）
+            canvas.style.display = 'block';
+            const parent = canvas.parentElement;
+            canvas.width = parent.clientWidth - 40;
+            canvas.height = 600;
+
+            const ctx = canvas.getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: type,
+                data: data,
+                options: options || {
                     responsive: true,
-                    maintainAspectRatio: false,
-                    animation: { duration: 400, easing: 'easeOutQuart' },
                     plugins: {
                         title: {
-                            display: title !== '',
-                            text: title,
-                            color: '#00f3ff',
-                            font: { size: 20, family: "'Orbitron', sans-serif", weight: 'bold' },
-                            padding: 15,
-                        },
-                        legend: {
-                            labels: { color: '#e0e0ff', boxWidth: 20, font: { family: "'Rajdhani', sans-serif" } }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(10,10,18,0.9)',
-                            borderColor: '#00f3ff',
-                            borderWidth: 1,
-                            titleColor: '#00f3ff',
-                            bodyColor: '#fff',
+                            display: true,
+                            text: state.title,
+                            color: '#00f0ff',
+                            font: { size: 20 }
                         }
+                    }
+                }
+            });
+        }
+
+        // ================== 自定义绘制 ==================
+        function setupCanvas() {
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+            const parent = canvas.parentElement;
+            canvas.width = parent.clientWidth - 40;
+            canvas.height = 600;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // 背景
+            ctx.fillStyle = '#0d0f14';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            return ctx;
+        }
+
+        // ---------- 箱ひげ図 ----------
+        function drawBoxPlot() {
+            const ctx = setupCanvas();
+            const W = canvas.width;
+            const H = canvas.height;
+            const values = state.series[0].values.filter(v => !isNaN(v) && v !== null);
+            if (values.length === 0) {
+                ctx.fillStyle = '#888';
+                ctx.font = '18px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('データがありません', W / 2, H / 2);
+                return;
+            }
+
+            // 标题
+            ctx.fillStyle = '#00f0ff';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(state.title, W / 2, 30);
+
+            const sorted = [...values].sort((a, b) => a - b);
+            const min = sorted[0];
+            const max = sorted[sorted.length - 1];
+            const q1 = percentile(sorted, 0.25);
+            const median = percentile(sorted, 0.5);
+            const q3 = percentile(sorted, 0.75);
+
+            const yMin = min - (max - min) * 0.2 || min - 1;
+            const yMax = max + (max - min) * 0.2 || max + 1;
+            const x = W / 2;
+            const scaleY = (v) => H - 80 - ((v - yMin) / (yMax - yMin)) * (H - 160);
+
+            // 绘制坐标轴
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(60, H - 70);
+            ctx.lineTo(W - 60, H - 70);
+            ctx.stroke();
+
+            // 网格线
+            ctx.strokeStyle = '#1a1a2e';
+            for (let i = 0; i <= 5; i++) {
+                const gy = H - 70 - (i / 5) * (H - 160);
+                ctx.beginPath();
+                ctx.moveTo(60, gy);
+                ctx.lineTo(W - 60, gy);
+                ctx.stroke();
+            }
+
+            // 绘制箱体
+            const boxW = 80;
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.2)';
+            ctx.strokeStyle = '#00f0ff';
+            ctx.lineWidth = 2;
+            ctx.fillRect(x - boxW / 2, scaleY(q3), boxW, scaleY(q1) - scaleY(q3));
+            ctx.strokeRect(x - boxW / 2, scaleY(q3), boxW, scaleY(q1) - scaleY(q3));
+
+            // 中位线
+            ctx.strokeStyle = '#ff00a0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x - boxW / 2, scaleY(median));
+            ctx.lineTo(x + boxW / 2, scaleY(median));
+            ctx.stroke();
+
+            // whisker
+            ctx.strokeStyle = '#00ff41';
+            ctx.lineWidth = 2;
+            // 上 whisker
+            ctx.beginPath();
+            ctx.moveTo(x, scaleY(q3));
+            ctx.lineTo(x, scaleY(max));
+            ctx.moveTo(x - boxW / 4, scaleY(max));
+            ctx.lineTo(x + boxW / 4, scaleY(max));
+            ctx.stroke();
+            // 下 whisker
+            ctx.beginPath();
+            ctx.moveTo(x, scaleY(q1));
+            ctx.lineTo(x, scaleY(min));
+            ctx.moveTo(x - boxW / 4, scaleY(min));
+            ctx.lineTo(x + boxW / 4, scaleY(min));
+            ctx.stroke();
+
+            // 离群值
+            const iqr = q3 - q1;
+            sorted.forEach(v => {
+                if (v < q1 - 1.5 * iqr || v > q3 + 1.5 * iqr) {
+                    ctx.beginPath();
+                    ctx.arc(x, scaleY(v), 4, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ff6b35';
+                    ctx.fill();
+                    ctx.strokeStyle = '#ff6b35';
+                    ctx.stroke();
+                }
+            });
+
+            // 标签
+            ctx.fillStyle = '#aaa';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('Min:', 20, scaleY(min) + 4);
+            ctx.fillText(String(min), 60, scaleY(min) + 4);
+            ctx.fillText('Q1:', 20, scaleY(q1) + 4);
+            ctx.fillText(String(q1), 60, scaleY(q1) + 4);
+            ctx.fillText('中央:', 20, scaleY(median) + 4);
+            ctx.fillText(String(median), 60, scaleY(median) + 4);
+            ctx.fillText('Q3:', 20, scaleY(q3) + 4);
+            ctx.fillText(String(q3), 60, scaleY(q3) + 4);
+            ctx.fillText('Max:', 20, scaleY(max) + 4);
+            ctx.fillText(String(max), 60, scaleY(max) + 4);
+        }
+
+        // ---------- ヒートマップ ----------
+        function drawHeatmap() {
+            const ctx = setupCanvas();
+            const W = canvas.width;
+            const H = canvas.height;
+
+            ctx.fillStyle = '#00f0ff';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(state.title, W / 2, 30);
+
+            const rows = state.labels.length;
+            const cols = state.series.length;
+            if (rows === 0 || cols === 0) {
+                ctx.fillStyle = '#888';
+                ctx.font = '18px sans-serif';
+                ctx.fillText('データがありません', W / 2, H / 2);
+                return;
+            }
+
+            const allValues = [];
+            state.series.forEach(s => s.values.forEach(v => {
+                if (!isNaN(v)) allValues.push(v);
+            }));
+            if (allValues.length === 0) return;
+            const minVal = Math.min(...allValues);
+            const maxVal = Math.max(...allValues);
+            const range = maxVal - minVal || 1;
+
+            const margin = { top: 70, left: 120, right: 50, bottom: 50 };
+            const gridW = W - margin.left - margin.right;
+            const gridH = H - margin.top - margin.bottom;
+            const cellW = gridW / cols;
+            const cellH = gridH / rows;
+
+            // 左侧标签
+            ctx.fillStyle = '#eee';
+            ctx.font = '13px sans-serif';
+            ctx.textAlign = 'right';
+            for (let i = 0; i < rows; i++) {
+                ctx.fillText(state.labels[i], margin.left - 10, margin.top + i * cellH + cellH / 2 + 4);
+            }
+
+            // 顶部系列名
+            ctx.fillStyle = '#ff00a0';
+            ctx.textAlign = 'center';
+            for (let j = 0; j < cols; j++) {
+                ctx.fillText(state.series[j].name, margin.left + j * cellW + cellW / 2, margin.top - 15);
+            }
+
+            // 颜色函数
+            const heatColor = (t) => {
+                const r = Math.min(255, Math.floor(t * 255));
+                const b = Math.min(255, Math.floor((1 - t) * 255));
+                const g = Math.min(255, Math.floor(0.2 * t * 255));
+                return `rgb(${r},${g},${b})`;
+            };
+
+            // 绘制格子
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const v = state.series[j].values[i];
+                    const t = isNaN(v) ? 0 : (v - minVal) / range;
+                    ctx.fillStyle = heatColor(Math.max(0, Math.min(1, t)));
+                    ctx.fillRect(margin.left + j * cellW, margin.top + i * cellH, cellW - 2, cellH - 2);
+                    // 文本
+                    ctx.fillStyle = t > 0.6 ? '#000' : '#fff';
+                    ctx.font = '12px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(isNaN(v) ? '-' : Math.round(v), margin.left + j * cellW + cellW / 2, margin.top + i * cellH +
+                        cellH / 2 + 4);
+                }
+            }
+
+            // 网格线
+            ctx.strokeStyle = '#0d0f14';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= rows; i++) {
+                ctx.beginPath();
+                ctx.moveTo(margin.left, margin.top + i * cellH);
+                ctx.lineTo(margin.left + gridW, margin.top + i * cellH);
+                ctx.stroke();
+            }
+            for (let j = 0; j <= cols; j++) {
+                ctx.beginPath();
+                ctx.moveTo(margin.left + j * cellW, margin.top);
+                ctx.lineTo(margin.left + j * cellW, margin.top + gridH);
+                ctx.stroke();
+            }
+        }
+
+        // ---------- サンキー ----------
+        function drawSankey() {
+            const ctx = setupCanvas();
+            const W = canvas.width;
+            const H = canvas.height;
+
+            ctx.fillStyle = '#00f0ff';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(state.title, W / 2, 30);
+
+            const nLeft = state.labels.length;
+            const nRight = state.series.length;
+            if (nLeft === 0 || nRight === 0) {
+                ctx.fillStyle = '#888';
+                ctx.font = '18px sans-serif';
+                ctx.fillText('データがありません', W / 2, H / 2);
+                return;
+            }
+
+            const leftX = 80;
+            const rightX = W - 140;
+            const topY = 60;
+            const botY = H - 60;
+            const leftY = (i) => topY + ((i + 0.5) * (botY - topY) / nLeft);
+            const rightY = (j) => topY + ((j + 0.5) * (botY - topY) / nRight);
+
+            // 绘制左侧节点
+            state.labels.forEach((label, i) => {
+                const y = leftY(i);
+                ctx.fillStyle = 'rgba(0, 240, 255, 0.3)';
+                ctx.strokeStyle = '#00f0ff';
+                ctx.lineWidth = 1;
+                ctx.fillRect(leftX - 15, y - 20, 15, 40);
+                ctx.strokeRect(leftX - 15, y - 20, 15, 40);
+                ctx.fillStyle = '#fff';
+                ctx.font = '13px sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(label, leftX - 25, y + 4);
+            });
+
+            // 绘制右侧节点
+            state.series.forEach((s, j) => {
+                const y = rightY(j);
+                ctx.fillStyle = 'rgba(255, 0, 160, 0.3)';
+                ctx.strokeStyle = '#ff00a0';
+                ctx.lineWidth = 1;
+                ctx.fillRect(rightX, y - 20, 15, 40);
+                ctx.strokeRect(rightX, y - 20, 15, 40);
+                ctx.fillStyle = '#fff';
+                ctx.font = '13px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(s.name, rightX + 25, y + 4);
+            });
+
+            // 绘制连接线
+            ctx.globalAlpha = 0.7;
+            state.labels.forEach((label, i) => {
+                state.series.forEach((s, j) => {
+                    const v = s.values[i];
+                    if (isNaN(v) || v === 0) return;
+                    const lineWidth = Math.max(1, Math.min(Math.abs(v) / 2, 60));
+                    const x1 = leftX - 15;
+                    const y1 = leftY(i);
+                    const x2 = rightX;
+                    const y2 = rightY(j);
+                    const midX = (x1 + x2) / 2;
+
+                    const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+                    gradient.addColorStop(0, '#00f0ff');
+                    gradient.addColorStop(1, '#ff00a0');
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = lineWidth;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.quadraticCurveTo(midX, y1, midX, y2);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                });
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        // ================== ヒストグラム補助 ==================
+        function histogramData(values) {
+            const data = values.filter(v => !isNaN(v));
+            if (data.length === 0) return { labels: [], counts: [] };
+            const binCount = Math.min(10, Math.max(5, Math.round(Math.sqrt(data.length))));
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            if (min === max) {
+                return {
+                    labels: [String(min)],
+                    counts: [data.length]
+                };
+            }
+            const binWidth = (max - min) / binCount;
+            const counts = new Array(binCount).fill(0);
+            data.forEach(v => {
+                let idx = Math.floor((v - min) / binWidth);
+                if (idx >= binCount) idx = binCount - 1;
+                counts[idx]++;
+            });
+            const labels = [];
+            for (let i = 0; i < binCount; i++) {
+                labels.push((min + i * binWidth).toFixed(1) + '〜' + (min + (i + 1) * binWidth).toFixed(1));
+            }
+            return { labels, counts };
+        }
+
+        // ================== 主渲染函数 ==================
+        function renderChart() {
+            const type = state.chartType;
+
+            // 特殊图表类型：自定义canvas绘制
+            if (type === 'boxplot') {
+                drawBoxPlot();
+                return;
+            }
+            if (type === 'heatmap') {
+                drawHeatmap();
+                return;
+            }
+            if (type === 'sankey') {
+                drawSankey();
+                return;
+            }
+
+            // Chart.js 图表
+            if (type === 'bar') {
+                renderChartJS('bar', {
+                    labels: state.labels,
+                    datasets: [{
+                        label: state.series[0].name,
+                        data: state.series[0].values,
+                        backgroundColor: neonColors[0],
+                        borderColor: neonColors[0],
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                }, {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#222' } },
+                        x: { grid: { color: '#222' } }
+                    }
+                });
+            } else if (type === 'line') {
+                const datasets = state.series.map((s, i) => ({
+                    label: s.name,
+                    data: s.values,
+                    borderColor: neonColors[i % neonColors.length],
+                    backgroundColor: 'transparent',
+                    pointBackgroundColor: neonColors[i % neonColors.length],
+                    tension: 0.4,
+                    borderWidth: 2
+                }));
+                renderChartJS('line', {
+                    labels: state.labels,
+                    datasets: datasets
+                }, {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#222' } },
+                        x: { grid: { color: '#222' } }
+                    }
+                });
+            } else if (type === 'pie') {
+                const data = [...state.series[0].values];
+                // 防止所有值为0
+                if (data.every(v => v === 0)) data.fill(1);
+                renderChartJS('pie', {
+                    labels: state.labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: neonColors.slice(0, state.labels.length),
+                        borderColor: '#0d0f14',
+                        borderWidth: 2
+                    }]
+                }, {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } },
+                        legend: { labels: { color: '#fff' } }
+                    }
+                });
+            } else if (type === 'horizontalBar') {
+                const datasets = state.series.map((s, i) => ({
+                    label: s.name,
+                    data: [...s.values],
+                    backgroundColor: neonColors[i % neonColors.length],
+                    borderColor: neonColors[i % neonColors.length],
+                    borderWidth: 1
+                }));
+                renderChartJS('bar', {
+                    labels: state.labels,
+                    datasets: datasets
+                }, {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
                     },
                     scales: {
                         x: {
-                            grid: { color: 'rgba(255,255,255,0.1)', borderColor: 'rgba(0, 243, 255, 0.5)' },
-                            ticks: { color: '#a0a0ff' },
+                            stacked: true,
+                            grid: { color: '#222' }
                         },
                         y: {
-                            grid: { color: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255, 0, 122, 0.5)' },
-                            ticks: { color: '#a0a0ff' },
+                            stacked: true,
+                            grid: { color: '#222' }
                         }
                     }
-                };
-
-                if (type === 'doughnut' || type === 'pie') {
-                    delete options.scales;
-                }
-
-                try {
-                    if (type === 'boxplot' && typeof ChartBoxPlot !== 'undefined') Chart.register(ChartBoxPlot);
-                    if (type === 'heatmap' && typeof MatrixController !== 'undefined') Chart.register(MatrixController, MatrixElement);
-                    if (type === 'sankey' && typeof SankeyController !== 'undefined') Chart.register(SankeyController, SankeyElement);
-                } catch(e) { console.warn('プラグイン登録エラー:', e); }
-
-                chartInstance = new Chart(ctx, {
-                    type: chartType,
-                    data: data,
-                    options: options
+                });
+            } else if (type === 'histogram') {
+                const values = state.series[0].values;
+                const { labels, counts } = histogramData(values);
+                renderChartJS('bar', {
+                    labels: labels,
+                    datasets: [{
+                        label: '頻度',
+                        data: counts,
+                        backgroundColor: neonColors[2],
+                        borderColor: neonColors[2],
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                }, {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#222' } },
+                        x: { grid: { color: '#222' } }
+                    }
+                });
+            } else if (type === 'scatter') {
+                const data = state.series[0].values.map((v, i) => ({ x: i + 1, y: v }));
+                renderChartJS('scatter', {
+                    datasets: [{
+                        label: state.series[0].name,
+                        data: data,
+                        backgroundColor: neonColors[0],
+                        pointRadius: 6,
+                        pointBackgroundColor: neonColors[0],
+                        borderColor: neonColors[0],
+                        borderWidth: 1
+                    }]
+                }, {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#222' }
+                        },
+                        x: {
+                            grid: { color: '#222' },
+                            title: { display: true, text: 'index', color: '#aaa' }
+                        }
+                    }
+                });
+            } else if (type === 'stackedBar') {
+                const datasets = state.series.map((s, i) => ({
+                    label: s.name,
+                    data: [...s.values],
+                    backgroundColor: neonColors[i % neonColors.length],
+                    borderColor: neonColors[i % neonColors.length],
+                    borderWidth: 1
+                }));
+                renderChartJS('bar', {
+                    labels: state.labels,
+                    datasets: datasets
+                }, {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { color: '#222' } },
+                        y: { stacked: true, grid: { color: '#222' } }
+                    }
+                });
+            } else if (type === 'radar') {
+                const datasets = state.series.map((s, i) => ({
+                    label: s.name,
+                    data: [...s.values],
+                    borderColor: neonColors[i % neonColors.length],
+                    backgroundColor: neonColors[i % neonColors.length] + '55',
+                    pointBackgroundColor: neonColors[i % neonColors.length],
+                    pointRadius: 4,
+                    borderWidth: 2
+                }));
+                renderChartJS('radar', {
+                    labels: state.labels,
+                    datasets: datasets
+                }, {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            grid: { color: '#222' },
+                            pointLabels: { color: '#fff' }
+                        }
+                    }
+                });
+            } else if (type === 'bubble') {
+                const data = state.series[0].values.map((v, i) => ({
+                    x: i + 1,
+                    y: v,
+                    r: Math.max(4, Math.abs(v) / 2)
+                }));
+                renderChartJS('bubble', {
+                    datasets: [{
+                        label: state.series[0].name,
+                        data: data,
+                        backgroundColor: 'rgba(255, 0, 160, 0.3)',
+                        borderColor: '#ff00a0',
+                        borderWidth: 2
+                    }]
+                }, {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#222' } },
+                        x: { grid: { color: '#222' } }
+                    }
                 });
             }
+        }
 
-            // スクリーンショット保存
-            document.getElementById('screenshotBtn').addEventListener('click', function() {
-                if (!chartInstance) {
-                    alert('先にグラフを生成してください');
-                    return;
-                }
-                const title = graphTitleInput.value.trim() || 'グラフ作成サイト';
-                html2canvas(chartCard).then(canvasPng => {
-                    const link = document.createElement('a');
-                    link.download = title.replace(/[\\/:*?"<>|]/g, '_') + '.png';
-                    link.href = canvasPng.toDataURL('image/png');
-                    link.click();
-                });
+        // ================== 更新标题 ==================
+        function updateChartTitle() {
+            state.title = chartTitleInput.value;
+            if (chartInstance) {
+                chartInstance.options.plugins.title.text = state.title;
+                chartInstance.update();
+            }
+            // 如果是自定义绘制，直接重新渲染
+            if (['boxplot', 'heatmap', 'sankey'].includes(state.chartType)) {
+                renderChart();
+            }
+        }
+
+        // ================== 下载PNG ==================
+        function downloadPNG() {
+            const fileName = state.title.replace(/[\\/:*?"<>|]/g, '_') || 'chart';
+            const link = document.createElement('a');
+            link.download = fileName + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // ================== 事件绑定 ==================
+        chartTypeSelect.addEventListener('change', () => {
+            state.chartType = chartTypeSelect.value;
+            chartTitleInput.value = state.title;
+            renderChart();
+        });
+
+        chartTitleInput.addEventListener('input', () => {
+            updateChartTitle();
+        });
+
+        addRowBtn.addEventListener('click', () => {
+            state.labels.push('項目' + (state.labels.length + 1));
+            state.series.forEach(s => s.values.push(0));
+            renderTable();
+            renderChart();
+        });
+
+        addSeriesBtn.addEventListener('click', () => {
+            const num = state.series.length + 1;
+            state.series.push({
+                name: '系列' + num,
+                values: state.labels.map(() => 0)
             });
+            renderTable();
+            renderChart();
+        });
 
-            // イベント
-            addDataRowBtn.addEventListener('click', function() {
-                addDataRow();
-                updateChart();
-            });
-            graphTitleInput.addEventListener('input', updateChart);
-            graphTypeSelect.addEventListener('change', updateChart);
+        downloadBtn.addEventListener('click', () => {
+            downloadPNG();
+        });
 
-            // 初期化
-            addDataRow('', '');
-            updateChart();
-        })();
+        // ================== 窗口大小变化 ==================
+        window.addEventListener('resize', () => {
+            if (['boxplot', 'heatmap', 'sankey'].includes(state.chartType)) {
+                renderChart();
+            } else if (chartInstance) {
+                chartInstance.resize();
+            }
+        });
+
+        // ================== 初始化 ==================
+        renderTable();
+        renderChart();
     </script>
 </body>
 </html>
