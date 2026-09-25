@@ -1,283 +1,481 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="入力したデータから、さまざまなグラフを作成して画像保存できる無料ツール。" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>グラフ作成サイト</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='82' font-size='82'>📊</text></svg>" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ["Noto Sans JP", "Inter", "system-ui", "sans-serif"]
-          }
-        }
+  <!-- ファビコン設定 -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- 追加プラグイン CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-boxplot@2.1.0/dist/chartjs-chart-boxplot.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.1.0/dist/chartjs-chart-matrix.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-sankey@0.3.0/dist/chartjs-chart-sankey.min.js"></script>
+  
+  <style>
+    /* ===== ネオン輝くダークモードCSS ===== */
+    .graph-generator-wrap {
+      --neon-blue: #00d9ff;
+      --neon-pink: #ff00a2;
+      --neon-green: #00ff88;
+      --neon-purple: #b200ff;
+      --bg-dark: #0a0a0f;
+      --panel-dark: #16161d;
+      --border-glow: rgba(0, 217, 255, 0.3);
+    }
+
+    .graph-generator-wrap {
+      background: var(--bg-dark);
+      border: 1px solid var(--neon-blue);
+      border-radius: 16px;
+      padding: 20px;
+      margin: 20px 0;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      box-shadow: 0 0 20px var(--border-glow), inset 0 0 20px rgba(0, 217, 255, 0.05);
+    }
+
+    .graph-generator-wrap h2 {
+      color: var(--neon-blue);
+      text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+    }
+
+    .graph-generator-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .graph-generator-controls label {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    .graph-generator-controls input,
+    .graph-generator-controls select {
+      background: var(--panel-dark);
+      border: 1px solid #333;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    .graph-generator-controls input:focus,
+    .graph-generator-controls select:focus {
+      outline: none;
+      border-color: var(--neon-blue);
+      box-shadow: 0 0 8px var(--border-glow);
+    }
+
+    .graph-generator-datalist {
+      background: var(--panel-dark);
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 15px;
+    }
+
+    .graph-generator-datalist .data-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .graph-generator-datalist .data-row input {
+      background: #0f0f15;
+      border: 1px solid #444;
+      color: #fff;
+      padding: 6px 8px;
+      border-radius: 6px;
+      flex: 1;
+    }
+
+    .graph-generator-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .graph-generator-actions button {
+      background: transparent;
+      border: 1px solid var(--neon-blue);
+      color: var(--neon-blue);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+      text-shadow: 0 0 5px rgba(0, 217, 255, 0.5);
+    }
+
+    .graph-generator-actions button:hover {
+      background: rgba(0, 217, 255, 0.1);
+      box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+    }
+
+    .graph-generator-actions button.download {
+      border-color: var(--neon-green);
+      color: var(--neon-green);
+      text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+    }
+
+    .graph-generator-actions button.download:hover {
+      background: rgba(0, 255, 136, 0.1);
+      box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+    }
+
+    .graph-generator-canvas-container {
+      background: var(--panel-dark);
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 400px;
+    }
+
+    .graph-generator-canvas-container canvas {
+      max-width: 100%px;
+      max-height: 500px;
+      margin: 0 auto;
+    }
+
+    /* レスポンシブ */
+    @media (max-width: 768px) {
+      .graph-generator-controls {
+        flex-direction: column;
+        align-items: stretch;
       }
-    };
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
-  <style>
-    :root{--ink:#f5f8ff;--muted:#8e9ab2;--muted-strong:#b3bfd1;--line:rgba(151,168,198,.17);--panel:rgba(19,30,52,.88);--accent:#75e6c4;--canvas:#111a2e;--shadow:0 24px 80px rgba(3,7,18,.42)}
-    *{box-sizing:border-box}html{min-width:320px;background:#080d19}body{margin:0;min-height:100vh;color:var(--ink);background:radial-gradient(circle at 72% -12%,rgba(42,89,112,.28),transparent 36rem),radial-gradient(circle at -10% 42%,rgba(43,53,106,.19),transparent 32rem),#080d19;font-family:"Manrope","Noto Sans JP",sans-serif}button,input,select{font:inherit}button{cursor:pointer}.app-shell{width:min(1480px,calc(100% - 56px));margin:auto;padding:34px 0 28px}.site-header,.panel-heading,.section-label-row,.preview-topline,.preview-footer,.action-row,.color-control,.chart-type-pill{display:flex;align-items:center;justify-content:space-between}.site-header{margin-bottom:34px}.brand-lockup{display:flex;align-items:center;gap:15px}.brand-mark{display:grid;grid-template-columns:repeat(2,8px);align-items:end;gap:4px;width:40px;height:40px;padding:9px;background:var(--accent);border-radius:12px;box-shadow:0 10px 24px rgba(117,230,196,.16)}.brand-mark span{display:block;width:8px;border-radius:2px;background:#102038}.brand-mark span:nth-child(1){height:12px}.brand-mark span:nth-child(2){height:18px}.brand-mark span:nth-child(3){height:17px}.brand-mark span:nth-child(4){height:9px}.eyebrow,.section-kicker{margin:0 0 5px;color:var(--accent);font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.16em;line-height:1.2}.brand-lockup h1{margin:0;font-size:clamp(21px,2.2vw,30px);font-weight:800;letter-spacing:-.05em}.header-meta,.chart-type-pill,.legend-note,.preview-size{color:var(--muted);font-size:11px}.header-meta{display:flex;align-items:center;gap:8px}.live-dot,#chartTypeIndicator{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(117,230,196,.12)}.main-grid{display:grid;grid-template-columns:minmax(335px,405px) minmax(0,1fr);gap:24px;align-items:start}.control-panel,.preview-panel{border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);backdrop-filter:blur(18px)}.control-panel{min-height:760px;padding:27px 25px 23px;border-radius:22px}.preview-panel{min-height:760px;padding:31px 32px 24px;border-radius:22px}.panel-heading{margin-bottom:30px}.panel-heading h2{margin:0;font-size:20px;letter-spacing:-.04em}.step-badge,.count-badge,.field-note{color:var(--accent);font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.08em}.step-badge{display:grid;width:32px;height:32px;place-items:center;border:1px solid rgba(117,230,196,.32);border-radius:9px;background:rgba(117,230,196,.08)}.form-section{padding:0 0 24px;margin-bottom:23px;border-bottom:1px solid var(--line)}.form-section label{display:block;color:var(--muted-strong);font-size:12px;font-weight:700}.section-label-row{align-items:flex-start;margin-bottom:11px}.text-input{width:100%;height:45px;padding:0 14px;color:var(--ink);border:1px solid rgba(150,169,202,.22);border-radius:10px;outline:0;background:rgba(9,16,30,.55);font-size:13px;transition:.18s}.text-input::placeholder{color:#65738b}.text-input:focus{border-color:rgba(117,230,196,.72);background:rgba(9,16,30,.8);box-shadow:0 0 0 3px rgba(117,230,196,.1)}.select-wrap{position:relative}.select-input{appearance:none;padding-right:38px}.select-input option{color:#132039;background:#f5f8ff}.select-chevron{position:absolute;top:10px;right:15px;color:var(--accent);font-size:20px;line-height:20px;pointer-events:none}.input-hint{margin:7px 0 0;color:var(--muted);font-size:10px;line-height:1.6}.data-section{padding-bottom:21px}.data-rows{display:flex;flex-direction:column;gap:9px;max-height:272px;padding:2px 4px 2px 0;overflow-y:auto;scrollbar-color:#38516c transparent;scrollbar-width:thin}.data-row{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.75fr) 30px;gap:7px;animation:row-in .26s ease both}.data-row.has-extra{grid-template-columns:minmax(0,.9fr) minmax(0,.7fr) minmax(0,.6fr) 30px}.row-input{min-width:0;width:100%;height:36px;padding:0 9px;color:var(--ink);border:1px solid rgba(150,169,202,.16);border-radius:8px;outline:0;background:rgba(8,15,29,.58);font-size:11px}.row-input:focus{border-color:rgba(117,230,196,.6);background:rgba(8,15,29,.88)}.row-input::placeholder{color:#63728a}.remove-row{display:grid;width:30px;height:36px;place-items:center;padding:0;color:#7888a0;border:1px solid rgba(150,169,202,.16);border-radius:8px;background:transparent;font-size:17px;line-height:1;transition:.16s}.remove-row:hover:not(:disabled){color:#ff9d9d;border-color:rgba(255,157,157,.45);background:rgba(255,110,110,.08)}.remove-row:disabled{cursor:not-allowed;opacity:.28}.add-row-button{width:100%;height:39px;margin-top:12px}.secondary-button,.primary-button{border-radius:9px;font-size:11px;font-weight:700;transition:.16s}.secondary-button{color:var(--muted-strong);border:1px solid rgba(150,169,202,.2);background:rgba(150,169,202,.05)}.secondary-button:hover{border-color:rgba(117,230,196,.48);color:var(--ink);background:rgba(117,230,196,.08)}.secondary-button:active,.primary-button:active{transform:translateY(1px)}.plus-icon{margin-right:4px;color:var(--accent);font-size:15px;vertical-align:-1px}.color-section{margin-bottom:22px;padding-bottom:20px}.color-grid{display:grid;gap:9px}.color-control{min-height:38px;padding:0 10px;color:var(--muted-strong);border:1px solid rgba(150,169,202,.14);border-radius:8px;background:rgba(8,15,29,.34);font-size:11px}.color-picker-wrap{display:flex;align-items:center;gap:8px;color:var(--muted);font-family:"DM Mono",monospace;font-size:9px}.color-picker-wrap input[type=color]{width:23px;height:23px;padding:0;overflow:hidden;border:1px solid rgba(255,255,255,.24);border-radius:6px;background:transparent;cursor:pointer}.color-picker-wrap input[type=color]::-webkit-color-swatch-wrapper{padding:0}.color-picker-wrap input[type=color]::-webkit-color-swatch{border:0;border-radius:5px}.action-row{gap:10px}.reset-button{min-width:104px;height:43px}.primary-button{display:inline-flex;flex:1;align-items:center;justify-content:center;gap:8px;height:43px;color:#09221c;border:0;background:var(--accent);box-shadow:0 10px 24px rgba(117,230,196,.16)}.primary-button:hover{background:#91f0d1;box-shadow:0 12px 28px rgba(117,230,196,.28);transform:translateY(-1px)}.download-icon{display:inline-grid;width:18px;height:18px;place-items:center;border:1.5px solid #09221c;border-radius:50%;font-size:14px;line-height:1}.preview-topline{min-height:36px;margin-bottom:24px}.preview-description{margin:0;color:var(--muted);font-size:11px}.chart-type-pill{justify-content:flex-start;gap:10px;padding:8px 12px;border:1px solid rgba(117,230,196,.18);border-radius:20px;background:rgba(117,230,196,.06);white-space:nowrap}.chart-type-pill #chartTypeIndicator{display:inline-block}.canvas-frame{position:relative;height:clamp(440px,54vw,590px);overflow:hidden;border:1px solid rgba(127,152,186,.18);border-radius:16px;background:var(--canvas);box-shadow:inset 0 0 0 1px rgba(255,255,255,.015);transition:background .3s}.canvas-glow{position:absolute;top:-35%;left:4%;width:70%;height:60%;border-radius:50%;background:rgba(117,230,196,.06);filter:blur(65px);pointer-events:none}#chartCanvas{position:relative;z-index:1;width:100%!important;height:100%!important;padding:27px 30px 23px}.empty-state{position:absolute;inset:0;z-index:2;display:grid;place-content:center;text-align:center;color:var(--muted);font-size:13px;line-height:1.8}.empty-state p{margin:12px 0 0}.empty-icon{color:var(--accent);font-size:34px}.preview-footer{margin-top:17px}.legend-note{display:flex;align-items:center;gap:7px}.mini-spark{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:10px 0 0 rgba(117,230,196,.42),20px 0 0 rgba(117,230,196,.18)}.preview-size{font-family:"DM Mono",monospace;font-size:10px}.site-footer{display:flex;gap:10px;padding:21px 2px 0;color:#607089;font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.04em}.footer-separator{color:var(--accent)}@keyframes row-in{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}@media(max-width:1000px){.app-shell{width:min(760px,calc(100% - 32px))}.main-grid{grid-template-columns:1fr}.control-panel,.preview-panel{min-height:auto}.data-rows{max-height:none}.canvas-frame{height:min(65vw,580px);min-height:420px}}@media(max-width:560px){.app-shell{width:calc(100% - 24px);padding-top:20px}.site-header{align-items:flex-start;gap:12px;margin-bottom:20px}.header-meta{padding-top:5px;font-size:0}.header-meta .live-dot{width:8px;height:8px}.control-panel,.preview-panel{padding:21px 17px;border-radius:17px}.preview-topline{align-items:flex-start;flex-direction:column;gap:14px;margin-bottom:17px}.canvas-frame{height:380px;min-height:0}#chartCanvas{padding:18px 8px 15px}.data-row{grid-template-columns:minmax(0,1fr) minmax(0,.8fr) 30px}.data-row.has-extra{grid-template-columns:minmax(0,.95fr) minmax(0,.7fr) minmax(0,.65fr) 30px}.row-input{padding:0 7px;font-size:10px}.action-row{align-items:stretch;flex-direction:column-reverse}.reset-button,.primary-button{width:100%}.site-footer{padding-bottom:20px}}
-  </style>
-  <style>
-    .data-row.bubble-row{grid-template-columns:minmax(80px,1fr) repeat(3,minmax(48px,.7fr)) 30px}
-    @media(max-width:560px){.data-row.bubble-row{grid-template-columns:minmax(72px,1fr) repeat(3,minmax(42px,.6fr)) 30px}}
-  </style>
-  <style>
-    :root{--ink:#f5f7ff;--muted:#9299bd;--muted-strong:#d1d5f2;--line:rgba(110,91,255,.28);--panel:rgba(16,13,42,.9);--accent:#00f5d4;--canvas:#09091f;--shadow:0 24px 90px rgba(0,0,0,.55)}
-    body{background:radial-gradient(circle at 78% -8%,rgba(0,245,212,.15),transparent 30rem),radial-gradient(circle at 4% 38%,rgba(236,72,153,.16),transparent 32rem),#050512}
-    .brand-mark{background:linear-gradient(135deg,#00f5d4,#7c3aed);box-shadow:0 0 24px rgba(0,245,212,.5),0 0 44px rgba(124,58,237,.25)}
-    .brand-mark .brand-emoji{display:block;width:auto;height:auto;border-radius:0;background:transparent;font-size:21px;line-height:1;filter:drop-shadow(0 0 4px rgba(255,255,255,.8))}
-    .eyebrow,.section-kicker,.step-badge,.count-badge,.field-note,.plus-icon,.select-chevron,.empty-icon{color:#00f5d4}
-    .live-dot,#chartTypeIndicator{background:#00f5d4;box-shadow:0 0 0 4px rgba(0,245,212,.14),0 0 14px rgba(0,245,212,.9)}
-    .control-panel,.preview-panel{border-color:rgba(110,91,255,.3);box-shadow:0 24px 90px rgba(0,0,0,.55),0 0 34px rgba(124,58,237,.08)}
-    .text-input:focus,.row-input:focus{border-color:#00f5d4;box-shadow:0 0 0 3px rgba(0,245,212,.12),0 0 18px rgba(0,245,212,.12)}
-    .step-badge,.chart-type-pill{border-color:rgba(0,245,212,.42);background:rgba(0,245,212,.08);box-shadow:0 0 15px rgba(0,245,212,.08)}
-    .primary-button{color:#061d1b;background:linear-gradient(100deg,#00f5d4,#7dff8a);box-shadow:0 0 22px rgba(0,245,212,.28)}
-    .primary-button:hover{background:linear-gradient(100deg,#57ffe5,#a2ffad);box-shadow:0 0 32px rgba(0,245,212,.5)}
-    .mini-spark{background:#00f5d4;box-shadow:10px 0 0 #ec4899,20px 0 0 #8b5cf6}
-    .canvas-frame{border-color:rgba(0,245,212,.25);box-shadow:inset 0 0 0 1px rgba(0,245,212,.06),0 0 26px rgba(0,245,212,.07)}
-    .canvas-frame{height:clamp(500px,58vw,680px)}
-    #chartCanvas{padding:22px 24px 18px}
-    @media(max-width:1000px){.canvas-frame{height:min(70vw,600px);min-height:460px}}
-    @media(max-width:560px){.canvas-frame{height:400px;min-height:0}#chartCanvas{padding:14px 4px 10px}}
-  </style>
-  <style>
-    :root{--ink:#ffffff;--muted:#b7b9e8;--muted-strong:#f1efff;--line:rgba(0,255,255,.38);--panel:rgba(25,9,57,.93);--accent:#00ffff;--canvas:#08051e;--shadow:0 24px 90px rgba(0,0,0,.6)}
-    body{background:radial-gradient(circle at 76% -6%,rgba(0,255,255,.26),transparent 30rem),radial-gradient(circle at 8% 42%,rgba(255,0,170,.24),transparent 30rem),radial-gradient(circle at 95% 85%,rgba(126,34,206,.25),transparent 28rem),#03020d}
-    .brand-mark{background:linear-gradient(135deg,#00ffff 0%,#39ff14 48%,#ff00aa 100%);box-shadow:0 0 28px rgba(0,255,255,.75),0 0 58px rgba(255,0,170,.4)}
-    .eyebrow,.section-kicker,.step-badge,.count-badge,.field-note,.plus-icon,.select-chevron,.empty-icon{color:#00ffff;text-shadow:0 0 10px rgba(0,255,255,.6)}
-    .live-dot,#chartTypeIndicator{background:#00ffff;box-shadow:0 0 0 4px rgba(0,255,255,.2),0 0 20px #00ffff}
-    .control-panel,.preview-panel{border-color:rgba(0,255,255,.42);box-shadow:0 24px 90px rgba(0,0,0,.6),0 0 42px rgba(255,0,170,.12),inset 0 0 22px rgba(0,255,255,.025)}
-    .text-input,.row-input{border-color:rgba(147,111,255,.45)}
-    .text-input:focus,.row-input:focus{border-color:#00ffff;box-shadow:0 0 0 3px rgba(0,255,255,.16),0 0 24px rgba(0,255,255,.25)}
-    .step-badge,.chart-type-pill{border-color:rgba(0,255,255,.6);background:rgba(0,255,255,.12);box-shadow:0 0 22px rgba(0,255,255,.16)}
-    .primary-button{color:#041b18;background:linear-gradient(100deg,#00ffff,#39ff14);box-shadow:0 0 28px rgba(0,255,255,.5),0 0 42px rgba(57,255,20,.22)}
-    .primary-button:hover{background:linear-gradient(100deg,#9fffff,#b6ff8a);box-shadow:0 0 42px rgba(0,255,255,.8),0 0 58px rgba(57,255,20,.42)}
-    .mini-spark{background:#00ffff;box-shadow:10px 0 0 #ff00aa,20px 0 0 #a855f7}
-    .canvas-frame{border-color:rgba(0,255,255,.52);box-shadow:inset 0 0 0 1px rgba(0,255,255,.12),0 0 34px rgba(0,255,255,.18),0 0 52px rgba(255,0,170,.1)}
+      .graph-generator-actions {
+        flex-wrap: wrap;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="app-shell">
-    <header class="site-header">
-      <div class="brand-lockup">
-        <div class="brand-mark" aria-hidden="true"><span class="brand-emoji">📊</span></div>
-        <div>
-          <p class="eyebrow">DATA VISUALIZER / 01</p>
-          <h1>グラフ作成サイト</h1>
-        </div>
+  <!-- ここに他のAIサイトのコンテンツが入る想定 -->
+
+  <!-- ===== グラフ生成ツールセクション ===== -->
+  <section id="graph-generator" class="graph-generator-wrap">
+    <h2>📊 グラフジェネレーター</h2>
+    
+    <!-- コントロール群 -->
+    <div class="graph-generator-controls">
+      <label>グラフタイトル
+        <input type="text" id="graphTitle" value="サンプルグラフ" placeholder="グラフタイトルを入力">
+      </label>
+      <label>グラフタイプ
+        <select id="chartType">
+          <option value="bar" selected>棒グラフ</option>
+          <option value="line">折れ線グラフ</option>
+          <option value="pie">円グラフ</option>
+          <option value="horizontalBar">帯グラフ（横向き積み上げ）</option>
+          <option value="histogram">ヒストグラム</option>
+          <option value="scatter">散布図</option>
+          <option value="stackedBar">積み上げ棒グラフ</option>
+          <option value="radar">レーダーチャート</option>
+          <option value="bubble">バブルチャート</option>
+          <option value="boxplot">箱ひげ図</option>
+          <option value="heatmap">ヒートマップ</option>
+          <option value="sankey">サンキーダイアグラム</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- データ入力テーブル -->
+    <div class="graph-generator-datalist" id="dataListContainer">
+      <div class="data-row" data-label-input>
+        <input type="text" class="label-input" placeholder="項目名" value="A">
+        <input type="number" class="data-input" placeholder="数値" value="10">
+        <button class="delete-row" onclick="removeDataRow(this)" style="background:transparent;border:1px solid var(--neon-pink);color:var(--neon-pink);border-radius:4px;cursor:pointer;padding:0 8px;">✕</button>
       </div>
-    </header>
+      <div class="data-row">
+        <input type="text" class="label-input" placeholder="項目名" value="B">
+        <input type="number" class="data-input" placeholder="数値" value="20">
+        <button class="delete-row" onclick="removeDataRow(this)" style="background:transparent;border:1px solid var(--neon-pink);color:var(--neon-pink);border-radius:4px;cursor:pointer;padding:0 8px;">✕</button>
+      </div>
+      <div class="data-row">
+        <input type="text" class="label-input" placeholder="項目名" value="C">
+        <input type="number" class="data-input" placeholder="数値" value="15">
+        <button class="delete-row" onclick="removeDataRow(this)" style="background:transparent;border:1px solid var(--neon-pink);color:var(--neon-pink);border-radius:4px;cursor:pointer;padding:0 8px;">✕</button>
+      </div>
+    </div>
 
-    <main class="main-grid">
-      <aside class="control-panel">
-        <div class="panel-heading">
-          <div>
-            <p class="section-kicker">BUILD YOUR CHART</p>
-            <h2>グラフをつくる</h2>
-          </div>
-          <span class="step-badge">01</span>
-        </div>
+    <!-- 操作ボタン -->
+    <div class="graph-generator-actions">
+      <button onclick="addDataRow()">+ データ追加</button>
+      <button onclick="updateChart()">更新</button>
+      <button class="download" onclick="downloadPNG()">⬇ PNGダウンロード</button>
+    </div>
 
-        <form id="chartForm" novalidate>
-          <section class="form-section">
-            <div class="section-label-row">
-              <label for="chartTitle">グラフのタイトル</label>
-            </div>
-            <input id="chartTitle" class="text-input" type="text" value="" placeholder="例：月別売上推移" autocomplete="off" />
-          </section>
+    <!-- グラフ表示エリア -->
+    <div class="graph-generator-canvas-container">
+      <canvas id="myChart"></canvas>
+    </div>
+  </section>
 
-          <section class="form-section">
-            <div class="section-label-row">
-              <label for="chartType">グラフの種類</label>
-              <span class="field-note">8 TYPES</span>
-            </div>
-            <div class="select-wrap">
-              <select id="chartType" class="text-input select-input">
-                <option value="bar">縦棒グラフ</option>
-                <option value="line">折れ線グラフ</option>
-                <option value="pie">円グラフ</option>
-                <option value="radar">レーダーチャート</option>
-                <option value="polarArea">ポーラーエリアチャート</option>
-                <option value="scatter">散布図</option>
-                <option value="bubble">バブルチャート</option>
-                <option value="dot">ドットプロット</option>
-              </select>
-              <span class="select-chevron" aria-hidden="true">⌄</span>
-            </div>
-            <p id="typeHint" class="input-hint">項目ごとの数値を比較する基本的な棒グラフです。</p>
-          </section>
-
-          <section class="form-section data-section">
-            <div class="section-label-row">
-              <div>
-                <label>データ</label>
-                <p id="dataInstruction" class="input-hint">項目名と数値を入力してください。</p>
-              </div>
-              <span id="rowCount" class="count-badge">3 行</span>
-            </div>
-            <div id="dataRows" class="data-rows"></div>
-            <button id="addRowButton" class="secondary-button add-row-button" type="button">
-              <span class="plus-icon">＋</span>
-              データ行を追加
-            </button>
-          </section>
-
-          <section class="form-section color-section">
-            <div class="section-label-row">
-              <label>デザイン</label>
-              <span class="field-note">STYLE</span>
-            </div>
-            <div class="color-grid">
-              <label class="color-control">
-                <span>グラフの色</span>
-                <span class="color-picker-wrap">
-                  <input id="chartColor" type="color" value="#00ffff" />
-                  <span id="chartColorValue">#00FFFF</span>
-                </span>
-              </label>
-              <label class="color-control">
-                <span>背景色</span>
-                <span class="color-picker-wrap">
-                  <input id="backgroundColor" type="color" value="#08051e" />
-                  <span id="backgroundColorValue">#08051E</span>
-                </span>
-              </label>
-              <label class="color-control">
-                <span>グリッド・枠線</span>
-                <span class="color-picker-wrap">
-                  <input id="borderColor" type="color" value="#7c3aed" />
-                  <span id="borderColorValue">#7C3AED</span>
-                </span>
-              </label>
-            </div>
-          </section>
-
-          <div class="action-row">
-            <button id="resetButton" class="secondary-button reset-button" type="button">初期値に戻す</button>
-            <button id="downloadButton" class="primary-button" type="button">
-              <span class="download-icon" aria-hidden="true">↓</span>
-              画像として保存
-            </button>
-          </div>
-        </form>
-      </aside>
-
-      <section class="preview-panel">
-        <div class="preview-topline">
-          <div>
-            <p class="section-kicker">PREVIEW CANVAS</p>
-            <p class="preview-description">変更内容は自動でプレビューに反映されます。</p>
-          </div>
-          <div class="chart-type-pill"><span id="chartTypeIndicator"></span><span id="chartTypeName">縦棒グラフ</span></div>
-        </div>
-
-        <div id="canvasFrame" class="canvas-frame">
-          <div class="canvas-glow"></div>
-          <canvas id="chartCanvas" aria-label="作成したグラフ"></canvas>
-          <div id="emptyState" class="empty-state" hidden>
-            <span class="empty-icon">⌁</span>
-            <p>データを入力すると<br />ここにグラフが表示されます</p>
-          </div>
-        </div>
-
-        <div class="preview-footer">
-          <div class="legend-note"><span class="mini-spark"></span>自動アニメーション</div>
-          <div class="preview-size">PNG / 1600 × 900</div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="site-footer">
-      <span>Chart.js powered</span>
-      <span class="footer-separator">•</span>
-      <span>ブラウザ上で安全に処理されます</span>
-    </footer>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <!-- ===== グラフ描画ロジック ===== -->
   <script>
-    const chartCanvas = document.getElementById("chartCanvas");
-    const canvasFrame = document.getElementById("canvasFrame");
-    const chartTitleInput = document.getElementById("chartTitle");
-    const chartTypeInput = document.getElementById("chartType");
-    const dataRows = document.getElementById("dataRows");
-    const addRowButton = document.getElementById("addRowButton");
-    const downloadButton = document.getElementById("downloadButton");
-    const resetButton = document.getElementById("resetButton");
-    const chartColorInput = document.getElementById("chartColor");
-    const backgroundColorInput = document.getElementById("backgroundColor");
-    const borderColorInput = document.getElementById("borderColor");
-    const typeHint = document.getElementById("typeHint");
-    const dataInstruction = document.getElementById("dataInstruction");
-    const rowCount = document.getElementById("rowCount");
-    const chartTypeName = document.getElementById("chartTypeName");
-    const emptyState = document.getElementById("emptyState");
-    let chart;
-    let rowId = 0;
-    const initialRows = [
-      {label:"",value:""},{label:"",value:""},{label:"",value:""}
+    // グローバル変数
+    let chartInstance = null;
+    const ctx = document.getElementById('myChart').getContext('2d');
+
+    // ネオンカラーパレット
+    const neonColors = {
+      blue: 'rgba(0, 217, 255, 0.8)',
+      pink: 'rgba(255, 0, 162, 0.8)',
+      green: 'rgba(0, 255, 136, 0.8)',
+      purple: 'rgba(178, 0, 255, 0.8)',
+      yellow: 'rgba(255, 255, 0, 0.7)',
+      orange: 'rgba(255, 165, 0, 0.8)',
+    };
+    const borderColors = [
+      '#00d9ff', '#ff00a2', '#00ff88', '#b200ff', '#ffff00', '#ffa500', '#00ffff', '#ff1493', '#7fff00', '#ff4500', '#00bfff', '#ff00ff'
     ];
-    const typeNames = {bar:"縦棒グラフ",horizontalBar:"横棒グラフ",line:"折れ線グラフ",pie:"円グラフ",doughnut:"ドーナツグラフ",radar:"レーダーチャート",polarArea:"ポーラーエリア",scatter:"散布図",bubble:"バブルチャート",dot:"ドットプロット"};
-    const typeHints = {bar:"項目ごとの数値を比較する基本的な棒グラフです。",horizontalBar:"長さの違いを横方向に比較しやすい棒グラフです。",line:"時間の変化やデータの流れを確認するグラフです。",pie:"全体に対する各項目の割合を表します。",doughnut:"中央に余白を持たせた割合表示のグラフです。",radar:"複数の評価軸をレーダー状に比較します。",polarArea:"項目ごとの大きさを扇形の面積で表します。",scatter:"入力した数値を項目ごとの点として自動表示します。",bubble:"入力した数値に合わせて点の大きさも自動調整します。",dot:"カテゴリごとの数値を1つのドットとして並べます。"};
-    const palette = ["#ff00aa","#a855f7","#39ff14","#00ffff","#fff000","#ff3366","#00bfff","#ff44cc","#b6ff00","#ff8a00"];
-    function escapeAttribute(value){return String(value).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
-    function addRow(row={label:"",value:""}) {
-      rowId++;
-      const el=document.createElement("div");
-      el.className="data-row"; el.dataset.rowId=rowId;
-      el.innerHTML=`<input class="row-input label-field" type="text" placeholder="${chartTypeInput.value==="dot"?"カテゴリ名":"項目名"}" value="${escapeAttribute(row.label??"")}" aria-label="項目名"><input class="row-input value-field" type="number" step="any" placeholder="数値" value="${escapeAttribute(row.value??"")}" aria-label="数値"><button class="remove-row" type="button" aria-label="この行を削除">×</button>`;
-      el.querySelector(".remove-row").addEventListener("click",()=>{if(dataRows.children.length>1){el.remove();updateRowMeta();renderChart()}});
-      el.querySelectorAll("input").forEach(input=>input.addEventListener("input",renderChart));
-      dataRows.appendChild(el); updateRowMeta();
+
+    // データ行の追加/削除
+    function addDataRow() {
+      const container = document.getElementById('dataListContainer');
+      const row = document.createElement('div');
+      row.className = 'data-row';
+      row.innerHTML = `
+        <input type="text" class="label-input" placeholder="項目名" value="新項目">
+        <input type="number" class="data-input" placeholder="数値" value="10">
+        <button class="delete-row" onclick="removeDataRow(this)" style="background:transparent;border:1px solid var(--neon-pink);color:var(--neon-pink);border-radius:4px;cursor:pointer;padding:0 8px;">✕</button>
+      `;
+      container.appendChild(row);
     }
-    function toNumber(value){return value===""?NaN:Number(value)}
-    function collectRows(){return [...dataRows.querySelectorAll(".data-row")].map(row=>({label:row.querySelector(".label-field")?.value.trim()||"",value:toNumber(row.querySelector(".value-field")?.value)}))}
-    function validNumber(value){return Number.isFinite(value)}
-    function getRows(){return collectRows().filter(row=>validNumber(row.value))}
-    function updateRowMeta(){const count=dataRows.children.length;rowCount.textContent=`${count} 行`;dataRows.querySelectorAll(".remove-row").forEach(button=>button.disabled=count<=1)}
-    function updateColorLabels(){document.getElementById("chartColorValue").textContent=chartColorInput.value.toUpperCase();document.getElementById("backgroundColorValue").textContent=backgroundColorInput.value.toUpperCase();document.getElementById("borderColorValue").textContent=borderColorInput.value.toUpperCase()}
-    function hexToRgba(hex,alpha=1){const n=hex.replace("#",""),v=n.length===3?n.split("").map(c=>c+c).join(""):n,i=parseInt(v,16);return`rgba(${(i>>16)&255}, ${(i>>8)&255}, ${i&255}, ${alpha})`}
-    function getChartColors(count){return Array.from({length:count},(_,i)=>count===1?chartColorInput.value:i===0?chartColorInput.value:palette[(i-1)%palette.length])}
-    function getCommonOptions(){
-      const type=chartTypeInput.value, radial=["pie","doughnut","polarArea"].includes(type), scatterLike=["scatter","bubble","dot"].includes(type), text="#aebbd0";
-      return {responsive:true,maintainAspectRatio:false,animation:{duration:600,easing:"easeOutQuart"},plugins:{legend:{display:radial,position:"bottom",labels:{color:text,usePointStyle:true,pointStyle:"circle",padding:18,font:{family:"Manrope, Noto Sans JP, sans-serif",size:11}}},title:{display:Boolean(chartTitleInput.value.trim()),text:chartTitleInput.value.trim(),color:"#f5f8ff",padding:{top:4,bottom:22},font:{family:"Manrope, Noto Sans JP, sans-serif",size:19,weight:"700"}},tooltip:{backgroundColor:"#0a1222",borderColor:hexToRgba(chartColorInput.value,.48),borderWidth:1,titleColor:"#f5f8ff",bodyColor:"#b8c5d8",padding:12,displayColors:true,cornerRadius:8}},scales:radial?undefined:{x:{type:scatterLike?"linear":"category",grid:{color:hexToRgba(borderColorInput.value,.6),drawBorder:false},ticks:{color:text,padding:8,font:{size:10}},border:{display:false}},y:{grid:{color:hexToRgba(borderColorInput.value,.6),drawBorder:false},ticks:{color:text,padding:8,font:{size:10}},border:{display:false},beginAtZero:type!=="scatter"&&type!=="bubble"}}}
-    }
-    function createChartConfig(rows){
-      const type=chartTypeInput.value, labels=rows.map((row,i)=>row.label||`項目${i+1}`), values=rows.map(row=>row.value), colors=getChartColors(Math.max(rows.length,1)), common=getCommonOptions(), background=hexToRgba(chartColorInput.value,.7), border=chartColorInput.value;
-      if(type==="scatter")return{type:"scatter",data:{datasets:[{label:chartTitleInput.value.trim()||"散布図",data:rows.map((row,i)=>({x:i+1,y:row.value,label:row.label})),backgroundColor:chartColorInput.value,borderColor:chartColorInput.value,pointRadius:7,pointHoverRadius:10,pointBorderWidth:2}]},options:common};
-      if(type==="bubble")return{type:"bubble",data:{datasets:[{label:chartTitleInput.value.trim()||"バブルチャート",data:rows.map((row,i)=>({x:i+1,y:row.value,r:Math.max(7,Math.min(26,Math.abs(row.value)/3+7)),label:row.label})),backgroundColor:hexToRgba(chartColorInput.value,.7),borderColor:chartColorInput.value,borderWidth:2,hoverRadius:4}]},options:common};
-      if(type==="dot"){
-        const max=Math.max(...values.map(value=>Math.abs(value)),1);
-        return{type:"scatter",data:{datasets:[{label:chartTitleInput.value.trim()||"ドットプロット",data:rows.map((row,i)=>({x:row.value,y:i+1,label:row.label})),backgroundColor:chartColorInput.value,borderColor:"#f5f8ff",borderWidth:2,pointRadius:9,pointHoverRadius:12}]},options:{...common,scales:{x:{min:Math.min(0,-max*.08),max:max*1.12,grid:{color:hexToRgba(borderColorInput.value,.6),drawBorder:false},ticks:{color:"#aebbd0",padding:8,font:{size:10}},border:{display:false}},y:{min:.5,max:rows.length+.5,grid:{color:hexToRgba(borderColorInput.value,.36),drawBorder:false},ticks:{color:"#aebbd0",padding:8,stepSize:1,callback:value=>labels[value-1]||"",font:{size:10}},border:{display:false}}},plugins:{...common.plugins,tooltip:{...common.plugins.tooltip,callbacks:{label:context=>`${context.raw.label||"項目"}: ${context.raw.x}`}}}}};
+
+    function removeDataRow(btn) {
+      const row = btn.closest('.data-row');
+      const container = document.getElementById('dataListContainer');
+      if (container.children.length > 1) {
+        row.remove();
+      } else {
+        // 最低1行は保持
+        alert('少なくとも1行は必要です');
       }
-      const dataset={label:chartTitleInput.value.trim()||"データ",data:values,backgroundColor:type==="line"?background:["pie","doughnut","polarArea"].includes(type)?colors:background,borderColor:type==="line"?border:colors,borderWidth:type==="line"?3:1.5,borderRadius:["bar","horizontalBar"].includes(type)?7:0,pointBackgroundColor:chartColorInput.value,pointBorderColor:"#f5f8ff",pointBorderWidth:2,pointRadius:type==="line"?5:0,pointHoverRadius:type==="line"?7:0,tension:.35,fill:type==="line"};
-      return{type:type==="horizontalBar"?"bar":type,data:{labels,datasets:[dataset]},options:{...common,indexAxis:type==="horizontalBar"?"y":"x",plugins:{...common.plugins,legend:{...common.plugins.legend,display:["pie","doughnut","polarArea"].includes(type)}}}};
     }
-    function improveChartReadability(config){
-      const options=config.options||{};
-      options.layout={padding:{top:8,right:18,bottom:8,left:12}};
-      if(options.scales)Object.values(options.scales).forEach(scale=>{if(scale.ticks)scale.ticks.font={size:12,weight:"500"};if(scale.grid)scale.grid.lineWidth=1});
-      if(options.plugins?.title)options.plugins.title.font={family:"Manrope, Noto Sans JP, sans-serif",size:20,weight:"800"};
-      if(options.plugins?.legend)options.plugins.legend.labels.font={family:"Manrope, Noto Sans JP, sans-serif",size:12,weight:"600"};
-      return config;
+
+    // データ取得
+    function getData() {
+      const labels = [];
+      const values = [];
+      const rows = document.querySelectorAll('#dataListContainer .data-row');
+      rows.forEach(row => {
+        const label = row.querySelector('.label-input').value.trim() || '未設定';
+        const val = parseFloat(row.querySelector('.data-input').value) || 0;
+        labels.push(label);
+        values.push(val);
+      });
+      return { labels, values };
     }
-    function renderChart(){
-      updateColorLabels();canvasFrame.style.background=backgroundColorInput.value;chartTypeName.textContent=typeNames[chartTypeInput.value];typeHint.textContent=typeHints[chartTypeInput.value];
-      const type=chartTypeInput.value;dataInstruction.textContent=["scatter","bubble"].includes(type)?"項目名と数値を入力すると、自動で見やすく配置されます。":type==="dot"?"カテゴリ名と数値を入力すると、ドットとして並びます。":"項目名と数値を入力してください。";
-      const rows=getRows();if(chart)chart.destroy();if(!rows.length){chartCanvas.style.visibility="hidden";emptyState.hidden=false;return}chartCanvas.style.visibility="visible";emptyState.hidden=true;chart=new Chart(chartCanvas.getContext("2d"),improveChartReadability(createChartConfig(rows)));
+
+    // グラフ更新関数
+    function updateChart() {
+      const title = document.getElementById('graphTitle').value || '無題のグラフ';
+      const chartType = document.getElementById('chartType').value;
+      const { labels, values } = getData();
+
+      // 既存チャート破棄
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      // 基本の設定
+      const baseConfig = {
+        type: chartType,
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'データ',
+            data: values,
+            backgroundColor: [
+              neonColors.blue, neonColors.pink, neonColors.green, neonColors.purple, neonColors.yellow, neonColors.orange,
+              'rgba(0, 217, 255, 0.6)', 'rgba(255, 0, 162, 0.6)', 'rgba(0, 255, 136, 0.6)', 'rgba(178, 0, 255, 0.6)', 'rgba(255, 255, 0, 0.6)', 'rgba(255, 165, 0, 0.6)'
+            ],
+            borderColor: borderColors,
+            borderWidth: 2,
+            pointBackgroundColor: borderColors,
+            pointBorderColor: '#0a0a0f',
+            pointHoverBackgroundColor: '#fff',
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            title: {
+              display: true,
+              text: title,
+              color: '#00d9ff',
+              font: { size: 20, weight: 'bold' },
+              padding: { top: 10, bottom: 10 }
+            },
+            legend: {
+              labels: { color: '#ccc' }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              titleColor: '#00d9ff',
+              bodyColor: '#fff'
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#ccc' },
+              grid: { color: 'rgba(255,255,255,0.05)' }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { color: '#ccc' },
+              grid: { color: 'rgba(255,255,255,0.05)' }
+            }
+          }
+        }
+      };
+
+      // タイプ別カスタマイズ
+      switch (chartType) {
+        case 'horizontalBar': {
+          baseConfig.options.indexAxis = 'y';
+          break;
+        }
+        case 'histogram': {
+          baseConfig.type = 'bar';
+          baseConfig.data.datasets[0].barPercentage = 1.0;
+          baseConfig.data.datasets[0].categoryPercentage = 1.0;
+          break;
+        }
+        case 'stackedBar': {
+          baseConfig.type = 'bar';
+          baseConfig.options.scales.x.stacked = true;
+          baseConfig.options.scales.y.stacked = true;
+          // 複数データセットの例
+          baseConfig.data.datasets = [
+            {
+              label: '系列1',
+              data: values,
+              backgroundColor: neonColors.blue,
+              borderColor: '#00d9ff',
+              borderWidth: 1
+            },
+            {
+              label: '系列2',
+              data: values.map(v => v * 0.5),
+              backgroundColor: neonColors.pink,
+              borderColor: '#ff00a2',
+              borderWidth: 1
+            }
+          ];
+          break;
+        }
+        case 'bubble': {
+          baseConfig.type = 'bubble';
+          baseConfig.data.datasets[0].data = values.map((val, i) => ({
+            x: i,
+            y: val,
+            r: Math.abs(val) * 2
+          }));
+          break;
+        }
+        case 'scatter': {
+          baseConfig.type = 'scatter';
+          baseConfig.data.datasets[0].data = values.map((val, i) => ({ x: i+1, y: val }));
+          break;
+        }
+        case 'boxplot': {
+          baseConfig.type = 'boxplot';
+          // 箱ひげ図用データ形式: [min, Q1, median, Q3, max]
+          const sorted = [...values].sort((a,b) => a-b);
+          const q1 = sorted[Math.floor(sorted.length*0.25)] || 0;
+          const median = sorted[Math.floor(sorted.length*0.5)] || 0;
+          const q3 = sorted[Math.floor(sorted.length*0.75)] || 0;
+          baseConfig.data.datasets[0].data = [[Math.min(...values), q1, median, q3, Math.max(...values)]];
+          break;
+        }
+        case 'heatmap': {
+          baseConfig.type = 'matrix';
+          const matrixData = [];
+          for (let i=0; i<labels.length; i++) {
+            for (let j=0; j<labels.length; j++) {
+              matrixData.push({
+                x: j,
+                y: i,
+                v: values[(i+j)%values.length]
+              });
+            }
+          }
+          baseConfig.data.datasets[0].data = matrixData;
+          baseConfig.data.datasets[0].backgroundColor = (ctx) => {
+            const v = ctx.dataset.data[ctx.dataIndex].v;
+            const max = Math.max(...values);
+            const min = Math.min(...values);
+            const ratio = (v - min) / (max - min || 1);
+            return `rgba(0, 217, 255, ${0.3 + ratio * 0.7})`;
+          };
+          baseConfig.data.datasets[0].borderColor = '#0a0a0f';
+          baseConfig.data.datasets[0].borderWidth = 1;
+          break;
+        }
+        case 'sankey': {
+          baseConfig.type = 'sankey';
+          // サンキーダイアグラム用データ生成
+          const nodes = labels;
+          const edges = [];
+          for (let i=0; i<labels.length-1; i++) {
+            edges.push({
+              from: labels[i],
+              to: labels[i+1],
+              flow: Math.abs(values[i])
+            });
+          }
+          baseConfig.data.datasets[0].data = {
+            nodes: nodes,
+            edges: edges
+          };
+          break;
+        }
+      }
+
+      // グラフ生成
+      chartInstance = new Chart(ctx, baseConfig);
     }
-    function switchChartType(){const rows=collectRows();dataRows.innerHTML="";rows.forEach(row=>addRow(row));renderChart()}
-    function resetAll(){chartTitleInput.value="";chartTypeInput.value="bar";chartColorInput.value="#00ffff";backgroundColorInput.value="#08051e";borderColorInput.value="#7c3aed";dataRows.innerHTML="";initialRows.forEach(row=>addRow(row));renderChart()}
-    chartTitleInput.addEventListener("input",renderChart);chartTypeInput.addEventListener("change",switchChartType);[chartColorInput,backgroundColorInput,borderColorInput].forEach(input=>input.addEventListener("input",renderChart));addRowButton.addEventListener("click",()=>addRow());resetButton.addEventListener("click",resetAll);downloadButton.addEventListener("click",()=>{if(!chart)return;const link=document.createElement("a");link.download=`${(chartTitleInput.value.trim()||"グラフ").replace(/[\\/:*?"<>|]/g,"_")}.png`;link.href=chart.toBase64Image("image/png",1);link.click()});
-    initialRows.forEach(row=>addRow(row));renderChart();
+
+    // ダウンロード機能
+    function downloadPNG() {
+      if (!chartInstance) {
+        alert('グラフがありません');
+        return;
+      }
+      const title = document.getElementById('graphTitle').value || 'グラフタイトル';
+      const link = document.createElement('a');
+      link.download = title + '.png';
+      link.href = document.getElementById('myChart').toDataURL('image/png');
+      link.click();
+    }
+
+    // リアルタイム更新（タイトル入力）
+    document.getElementById('graphTitle').addEventListener('input', function() {
+      if (chartInstance) {
+        chartInstance.options.plugins.title.text = this.value || '';
+        chartInstance.update();
+      }
+    });
+
+    // 初期化
+    window.addEventListener('DOMContentLoaded', updateChart);
   </script>
+
+  <!-- 他のAIサイトのコンテンツが続く想定 -->
 </body>
 </html>
