@@ -325,16 +325,16 @@
     </div>
 
     <script>
-        // ================== 状态管理（单一系列） ==================
+        // ================== 状態（初期データは空） ==================
         let chartInstance = null;
         let state = {
             chartType: 'bar',
             title: 'グラフタイトル',
-            labels: ['項目1', '項目2', '項目3', '項目4'],
-            values: [10, 20, 15, 25]
+            labels: [],
+            values: []
         };
 
-        // ================== DOM 元素 ==================
+        // ================== DOM element ==================
         const chartTypeSelect = document.getElementById('chartType');
         const chartTitleInput = document.getElementById('chartTitle');
         const dataTable = document.getElementById('dataTable');
@@ -342,12 +342,26 @@
         const downloadBtn = document.getElementById('downloadBtn');
         const canvas = document.getElementById('myChart');
 
-        // 配色
         const neonColors = ['#00f0ff', '#ff00a0', '#00ff41', '#ffde00', '#ff6b35', '#9d00ff', '#00ffcc', '#ff3881', '#7fff00', '#ff9500', '#00aaff', '#ff2d55'];
 
-        // ================== 表格渲染 ==================
+        // ================== テーブル描画 ==================
         function renderTable() {
             dataTable.innerHTML = '';
+            if (state.labels.length === 0) {
+                // 空状態表示
+                const trEmpty = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 3;
+                td.style.textAlign = 'center';
+                td.style.padding = '20px';
+                td.style.color = '#888';
+                td.textContent = 'データがありません。下の「行追加」を押してください。';
+                trEmpty.appendChild(td);
+                dataTable.appendChild(trEmpty);
+                return;
+            }
+
+            // ヘッダー
             const thead = document.createElement('thead');
             const trHead = document.createElement('tr');
             const th1 = document.createElement('th');
@@ -362,6 +376,7 @@
             thead.appendChild(trHead);
             dataTable.appendChild(thead);
 
+            // ボディ
             const tbody = document.createElement('tbody');
             state.labels.forEach((label, idx) => {
                 const tr = document.createElement('tr');
@@ -370,6 +385,7 @@
                 const inputLabel = document.createElement('input');
                 inputLabel.type = 'text';
                 inputLabel.value = label;
+                inputLabel.placeholder = '項目名';
                 inputLabel.addEventListener('input', () => {
                     state.labels[idx] = inputLabel.value;
                 });
@@ -380,6 +396,7 @@
                 const inputValue = document.createElement('input');
                 inputValue.type = 'number';
                 inputValue.value = state.values[idx];
+                inputValue.placeholder = '0';
                 inputValue.addEventListener('input', () => {
                     const v = parseFloat(inputValue.value);
                     state.values[idx] = isNaN(v) ? 0 : v;
@@ -409,7 +426,7 @@
             dataTable.appendChild(tbody);
         }
 
-        // ================== Chart.js 辅助函数 ==================
+        // ================== Chart.js 汎用 ==================
         function renderChartJS(type, data, options) {
             if (chartInstance) {
                 chartInstance.destroy();
@@ -443,7 +460,7 @@
             return ctx;
         }
 
-        // ================== 箱ひげ図 ==================
+        // ================== 個別描画（箱ひげ・ヒートマップ・サンキー） ==================
         function drawBoxPlot() {
             const ctx = setupCanvas();
             const W = canvas.width;
@@ -481,20 +498,17 @@
             const x = W / 2;
             const scaleY = (v) => H - 80 - ((v - yMin) / (yMax - yMin)) * (H - 160);
 
-            // 箱体
             const boxW = 80;
             ctx.fillStyle = 'rgba(0,240,255,0.2)';
             ctx.strokeStyle = '#00f0ff';
             ctx.lineWidth = 2;
             ctx.fillRect(x - boxW / 2, scaleY(q3), boxW, scaleY(q1) - scaleY(q3));
             ctx.strokeRect(x - boxW / 2, scaleY(q3), boxW, scaleY(q1) - scaleY(q3));
-            // 中位线
             ctx.strokeStyle = '#ff00a0';
             ctx.beginPath();
             ctx.moveTo(x - boxW / 2, scaleY(median));
             ctx.lineTo(x + boxW / 2, scaleY(median));
             ctx.stroke();
-            // whisker
             ctx.strokeStyle = '#00ff41';
             ctx.beginPath();
             ctx.moveTo(x, scaleY(q3));
@@ -509,7 +523,6 @@
             ctx.lineTo(x + boxW / 4, scaleY(min));
             ctx.stroke();
 
-            // 离群
             const iqr = q3 - q1;
             sorted.forEach(v => {
                 if (v < q1 - 1.5 * iqr || v > q3 + 1.5 * iqr) {
@@ -535,7 +548,6 @@
             ctx.fillText(String(max), 60, scaleY(max) + 4);
         }
 
-        // ================== ヒートマップ ==================
         function drawHeatmap() {
             const ctx = setupCanvas();
             const W = canvas.width;
@@ -546,7 +558,12 @@
             ctx.fillText(state.title, W / 2, 30);
 
             const rows = state.labels.length;
-            if (rows === 0) return;
+            if (rows === 0) {
+                ctx.fillStyle = '#888';
+                ctx.font = '18px sans-serif';
+                ctx.fillText('データがありません', W / 2, H / 2);
+                return;
+            }
             const values = state.values.map(v => isNaN(v) ? 0 : v);
             const maxVal = Math.max(...values);
             const minVal = Math.min(...values);
@@ -554,11 +571,9 @@
 
             const margin = { top: 50, left: 120, right: 40, bottom: 50 };
             const gridW = W - margin.left - margin.right;
-            const gridH = H - margin.top - margin.bottom;
-            const cellW = gridW / Math.max(1, rows);
             const cellH = 40;
+            const cellW = gridW / rows;
 
-            // 横轴标签
             ctx.fillStyle = '#eee';
             ctx.font = '13px sans-serif';
             ctx.textAlign = 'right';
@@ -566,7 +581,6 @@
                 ctx.fillText(state.labels[i], margin.left - 10, margin.top + i * cellH + cellH / 2 + 4);
             }
 
-            // 色块
             for (let i = 0; i < rows; i++) {
                 const t = (values[i] - minVal) / range;
                 const r = Math.min(255, Math.floor(t * 255));
@@ -579,8 +593,6 @@
                 ctx.font = '12px sans-serif';
                 ctx.fillText(String(values[i]), margin.left + i * cellW + cellW / 2, margin.top + cellH / 2 + 4);
             }
-
-            // 网格
             ctx.strokeStyle = '#0d0f14';
             ctx.lineWidth = 1;
             for (let i = 0; i <= rows; i++) {
@@ -591,7 +603,6 @@
             }
         }
 
-        // ================== サンキー（簡易版） ==================
         function drawSankey() {
             const ctx = setupCanvas();
             const W = canvas.width;
@@ -602,7 +613,12 @@
             ctx.fillText(state.title, W / 2, 30);
 
             const n = state.labels.length;
-            if (n === 0) return;
+            if (n === 0) {
+                ctx.fillStyle = '#888';
+                ctx.font = '18px sans-serif';
+                ctx.fillText('データがありません', W / 2, H / 2);
+                return;
+            }
             const values = state.values.map(v => isNaN(v) ? 0 : v);
             const maxV = Math.max(...values, 1);
             const leftX = 60;
@@ -611,23 +627,18 @@
             const botY = H - 60;
             const yPos = (i) => topY + ((i + 0.5) * (botY - topY) / n);
 
-            // 左端标签
             ctx.fillStyle = '#fff';
             ctx.font = '13px sans-serif';
             ctx.textAlign = 'right';
             state.labels.forEach((label, i) => {
                 ctx.fillText(label, leftX - 20, yPos(i) + 4);
             });
-
-            // 右端值
             ctx.fillStyle = '#ff00a0';
             ctx.textAlign = 'left';
             ctx.font = 'bold 13px sans-serif';
             values.forEach((v, i) => {
                 ctx.fillText(String(v), rightX + 10, yPos(i) + 4);
             });
-
-            // 线宽比例
             const maxW = Math.min(W/4, 60);
             values.forEach((v, i) => {
                 if (v === 0) return;
@@ -654,12 +665,24 @@
             if (type === 'heatmap') return drawHeatmap();
             if (type === 'sankey') return drawSankey();
 
-            // Chart.js 共通部分
+            // データが空なら空表示
+            if (state.labels.length === 0) {
+                if (chartInstance) {
+                    chartInstance.destroy();
+                    chartInstance = null;
+                }
+                const ctx = setupCanvas();
+                ctx.fillStyle = '#888';
+                ctx.font = '18px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('データを入力してください', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
             const labels = [...state.labels];
             const values = [...state.values];
 
             if (type === 'histogram') {
-                // ヒストグラム用にビン集計
                 const cleanValues = values.filter(v => !isNaN(v));
                 if (cleanValues.length === 0) {
                     renderChartJS('bar', { labels: ['データなし'], datasets: [{ data: [0] }] });
@@ -817,7 +840,7 @@
             renderChartJS(type, data, options);
         }
 
-        // ================== 标题更新 ==================
+        // ================== タイトル更新 ==================
         function updateTitle() {
             state.title = chartTitleInput.value;
             if (chartInstance) {
@@ -828,7 +851,7 @@
             }
         }
 
-        // ================== 下载PNG ==================
+        // ================== ダウンロード ==================
         function downloadPNG() {
             const fileName = state.title.replace(/[\\/:*?"<>|]/g, '_') || 'chart';
             const link = document.createElement('a');
@@ -837,7 +860,7 @@
             link.click();
         }
 
-        // ================== 事件绑定 ==================
+        // ================== イベント ==================
         chartTypeSelect.addEventListener('change', () => {
             state.chartType = chartTypeSelect.value;
             renderChart();
@@ -846,7 +869,7 @@
         chartTitleInput.addEventListener('input', updateTitle);
 
         addRowBtn.addEventListener('click', () => {
-            state.labels.push('項目' + (state.labels.length + 1));
+            state.labels.push('');
             state.values.push(0);
             renderTable();
             renderChart();
@@ -862,7 +885,7 @@
             }
         });
 
-        // ================== 初始化 ==================
+        // ================== 初期化 ==================
         renderTable();
         renderChart();
     </script>
