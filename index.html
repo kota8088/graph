@@ -4,478 +4,813 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>グラフ作成サイト</title>
-  <!-- ファビコン設定 -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
   
-  <!-- Chart.js CDN -->
+  <!-- ファビコン（絵文字📊） -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📊</text></svg>">
+  
+  <!-- Chart.js 本体 -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <!-- 追加プラグイン CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-boxplot@2.1.0/dist/chartjs-chart-boxplot.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.1.0/dist/chartjs-chart-matrix.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-sankey@0.3.0/dist/chartjs-chart-sankey.min.js"></script>
+  <!-- Chart.js プラグイン（箱ひげ図・ヒートマップ用） -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-box-and-violin@2.3.0/build/index.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@0.2.0/dist/chartjs-chart-matrix.min.js"></script>
   
-  <style>
-    /* ===== ネオン輝くダークモードCSS ===== */
-    .graph-generator-wrap {
-      --neon-blue: #00d9ff;
-      --neon-pink: #ff00a2;
-      --neon-green: #00ff88;
-      --neon-purple: #b200ff;
-      --bg-dark: #0a0a0f;
-      --panel-dark: #16161d;
-      --border-glow: rgba(0, 217, 255, 0.3);
-    }
+<style>
+/* ===== グラフ作成ツール専用CSS（他セクションと衝突しないようスコープ化） ===== */
+#graph-generator {
+  --neon-blue: #00f0ff;
+  --neon-pink: #ff00aa;
+  --neon-green: #00ff9d;
+  --neon-yellow: #ffdd00;
+  --bg-dark: #0a0a0f;
+  --bg-card: #141422;
+  --border-neon: rgba(0, 240, 255, 0.3);
+  --text-main: #e0e0e0;
+  
+  background: linear-gradient(135deg, #0a0a0f, #0d0d1a);
+  color: var(--text-main);
+  padding: 2rem;
+  border-radius: 20px;
+  border: 1px solid var(--border-neon);
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.1), inset 0 0 30px rgba(0, 0, 0, 0.5);
+  margin: 2rem auto;
+  max-width: 1400px;
+  width: 95%;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
 
-    .graph-generator-wrap {
-      background: var(--bg-dark);
-      border: 1px solid var(--neon-blue);
-      border-radius: 16px;
-      padding: 20px;
-      margin: 20px 0;
-      color: #e0e0e0;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      box-shadow: 0 0 20px var(--border-glow), inset 0 0 20px rgba(0, 217, 255, 0.05);
-    }
+#graph-generator h1 {
+  text-align: center;
+  font-size: 2.2rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(90deg, var(--neon-blue), var(--neon-pink), var(--neon-green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+}
 
-    .graph-generator-wrap h2 {
-      color: var(--neon-blue);
-      text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
-      font-size: 1.8rem;
-      margin-bottom: 15px;
-    }
+/* ---- コントロールパネル ---- */
+.graph-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(20, 20, 34, 0.8);
+  border-radius: 15px;
+  border: 1px solid var(--border-neon);
+}
 
-    .graph-generator-controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      margin-bottom: 20px;
-      align-items: center;
-    }
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
-    .graph-generator-controls label {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      font-size: 0.9rem;
-      color: #aaa;
-    }
+.control-group label {
+  color: var(--neon-blue);
+  font-size: 0.9rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
 
-    .graph-generator-controls input,
-    .graph-generator-controls select {
-      background: var(--panel-dark);
-      border: 1px solid #333;
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border-color 0.3s;
-    }
+.control-group select,
+.control-group input[type="text"] {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--neon-blue);
+  color: var(--text-main);
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
 
-    .graph-generator-controls input:focus,
-    .graph-generator-controls select:focus {
-      outline: none;
-      border-color: var(--neon-blue);
-      box-shadow: 0 0 8px var(--border-glow);
-    }
+.control-group select:focus,
+.control-group input[type="text"]:focus {
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+  border-color: var(--neon-pink);
+}
 
-    .graph-generator-datalist {
-      background: var(--panel-dark);
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 15px;
-    }
+/* ---- データ入力テーブル ---- */
+.data-table-container {
+  overflow-x: auto;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  border: 1px solid var(--border-neon);
+  padding: 1rem;
+}
 
-    .graph-generator-datalist .data-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
+#data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 auto;
+}
 
-    .graph-generator-datalist .data-row input {
-      background: #0f0f15;
-      border: 1px solid #444;
-      color: #fff;
-      padding: 6px 8px;
-      border-radius: 6px;
-      flex: 1;
-    }
+#data-table th,
+#data-table td {
+  padding: 0.8rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+}
 
-    .graph-generator-actions {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
+#data-table th {
+  color: var(--neon-pink);
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
 
-    .graph-generator-actions button {
-      background: transparent;
-      border: 1px solid var(--neon-blue);
-      color: var(--neon-blue);
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.3s;
-      text-shadow: 0 0 5px rgba(0, 217, 255, 0.5);
-    }
+#data-table td input {
+  width: 100%;
+  max-width: 200px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  color: var(--text-main);
+  padding: 0.5rem;
+  border-radius: 6px;
+  text-align: center;
+  transition: border-color 0.3s ease;
+}
 
-    .graph-generator-actions button:hover {
-      background: rgba(0, 217, 255, 0.1);
-      box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
-    }
+#data-table td input:focus {
+  border-color: var(--neon-green);
+  box-shadow: 0 0 10px rgba(0, 255, 157, 0.2);
+}
 
-    .graph-generator-actions button.download {
-      border-color: var(--neon-green);
-      color: var(--neon-green);
-      text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
-    }
+.data-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
 
-    .graph-generator-actions button.download:hover {
-      background: rgba(0, 255, 136, 0.1);
-      box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
-    }
+.neon-btn {
+  background: linear-gradient(90deg, var(--neon-blue), var(--neon-pink));
+  color: #000;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
 
-    .graph-generator-canvas-container {
-      background: var(--panel-dark);
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 10px;
-      min-height: 400px;
-    }
+.neon-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px rgba(255, 0, 170, 0.4), 0 0 25px rgba(0, 240, 255, 0.4);
+}
 
-    .graph-generator-canvas-container canvas {
-      max-width: 100%px;
-      max-height: 500px;
-      margin: 0 auto;
-    }
+.neon-btn.secondary {
+  background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
+}
 
-    /* レスポンシブ */
-    @media (max-width: 768px) {
-      .graph-generator-controls {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .graph-generator-actions {
-        flex-wrap: wrap;
-      }
-    }
-  </style>
+.neon-btn.danger {
+  background: linear-gradient(90deg, #ff3333, #ff0066);
+}
+
+/* ---- チャートエリア ---- */
+.chart-area {
+  position: relative;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 15px;
+  border: 1px solid var(--border-neon);
+  padding: 1.5rem;
+  margin-top: 2rem;
+  height: 650px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-area canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 550px;
+  object-fit: contain;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.chart-title-display {
+  font-size: 1.8rem;
+  font-weight: bold;
+  text-align: center;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 10px rgba(255, 221, 0, 0.3);
+  flex: 1;
+  min-width: 200px;
+}
+
+.download-btn {
+  background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
+  color: #000;
+  border: none;
+  padding: 0.8rem 1.2rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.download-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(0, 255, 157, 0.5);
+}
+
+/* ---- スマホ対応 ---- */
+@media (max-width: 768px) {
+  #graph-generator {
+    padding: 1rem;
+    margin: 1rem auto;
+  }
+  
+  #graph-generator h1 {
+    font-size: 1.6rem;
+  }
+  
+  .graph-controls {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+  
+  .chart-area {
+    height: 450px;
+    padding: 1rem;
+  }
+  
+  .chart-area canvas {
+    max-height: 350px;
+  }
+  
+  .chart-title-display {
+    font-size: 1.3rem;
+  }
+  
+  .data-actions {
+    flex-direction: column;
+  }
+  
+  .neon-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  #graph-generator {
+    padding: 0.8rem;
+    width: 100%;
+  }
+  
+  .chart-area {
+    height: 400px;
+  }
+  
+  .chart-area canvas {
+    max-height: 300px;
+  }
+  
+  #data-table th,
+  #data-table td {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+</style>
 </head>
 <body>
-  <!-- ここに他のAIサイトのコンテンツが入る想定 -->
 
-  <!-- ===== グラフ生成ツールセクション ===== -->
-  <section id="graph-generator" class="graph-generator-wrap">
-    <h2>📊 グラフジェネレーター</h2>
+<!-- ===== グラフ作成ツール セクション ===== -->
+<section id="graph-generator">
+  <h1>📊 グラフ作成サイト</h1>
+  
+  <!-- コントロールパネル -->
+  <div class="graph-controls">
+    <div class="control-group">
+      <label for="graph-type">グラフの種類</label>
+      <select id="graph-type">
+        <option value="bar">棒グラフ</option>
+        <option value="line">折れ線グラフ</option>
+        <option value="pie">円グラフ</option>
+        <option value="horizontalBar">帯グラフ（横向き積み上げ）</option>
+        <option value="histogram">ヒストグラム</option>
+        <option value="scatter">散布図</option>
+        <option value="stackedBar">積み上げ棒グラフ</option>
+        <option value="radar">レーダーチャート</option>
+        <option value="bubble">バブルチャート</option>
+        <option value="boxPlot">箱ひげ図</option>
+        <option value="heatmap">ヒートマップ</option>
+        <option value="sankey">サンキーダイアグラム</option>
+      </select>
+    </div>
     
-    <!-- コントロール群 -->
-    <div class="graph-generator-controls">
-      <label>グラフタイトル
-        <input type="text" id="graphTitle" value="サンプルグラフ" placeholder="グラフタイトルを入力">
-      </label>
-      <label>グラフタイプ
-        <select id="chartType">
-          <option value="bar" selected>棒グラフ</option>
-          <option value="line">折れ線グラフ</option>
-          <option value="pie">円グラフ</option>
-          <option value="horizontalBar">帯グラフ（横向き積み上げ）</option>
-          <option value="histogram">ヒストグラム</option>
-          <option value="scatter">散布図</option>
-          <option value="stackedBar">積み上げ棒グラフ</option>
-          <option value="radar">レーダーチャート</option>
-          <option value="bubble">バブルチャート</option>
-          <option value="boxplot">箱ひげ図</option>
-          <option value="heatmap">ヒートマップ</option>
-          <option value="sankey">サンキーダイアグラム</option>
-        </select>
-      </label>
+    <div class="control-group">
+      <label for="graph-title">グラフタイトル</label>
+      <input type="text" id="graph-title" placeholder="タイトルを入力..." value="グラフタイトル">
     </div>
-
-    <!-- データ入力テーブル -->
-    <div class="graph-generator-datalist" id="dataListContainer">
-      <div class="data-row" data-label-input>
-        <input type="text" class="label-input" placeholder="項目名" value="A">
-        <input type="number" class="data-input" placeholder="数値" value="10">
-        <button class="delete-row" onclick="removeDataRow(this)" style="background:transparent;border:1px solid var(--neon-pink);color:var(--neon-pink);border-radius:4px;cursor:pointer;padding:0 8px;">✕</button>
-      </div>
-      <div class="data-row">
-        <input type="text" class="label-input" placeholder="項目名" value="B">
-        <input type="number" class="data-input" placeholder="数値" value="20">
-        <button class="delete-row" onclick="removeDataRow(this)" style="background:transparent;border:1px solid var(--neon-pink);color:var(--neon-pink);border-radius:4px;cursor:pointer;padding:0 8px;">✕</button>
-      </div>
-      <div class="data-row">
-        <input type="text" class="label-input" placeholder="項目名" value="C">
-        <input type="number" class="data-input" placeholder="数値" value="15">
-        <button class="delete-row" onclick="removeDataRow(this)" style="background:transparent;border:1px solid var(--neon-pink);color:var(--neon-pink);border-radius:4px;cursor:pointer;padding:0 8px;">✕</button>
-      </div>
+  </div>
+  
+  <!-- データ入力エリア -->
+  <div class="data-table-container">
+    <h3 style="color:var(--neon-blue); margin-bottom:1rem;">データ入力</h3>
+    <table id="data-table">
+      <thead>
+        <tr>
+          <th>ラベル</th>
+          <th>データ値</th>
+          <th>アクション</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <!-- 初期データは空 - ユーザーが追加するまで何も表示しない -->
+      </tbody>
+    </table>
+    
+    <div class="data-actions">
+      <button class="neon-btn" onclick="addRow()">＋ データ追加</button>
+      <button class="neon-btn danger" onclick="removeLastRow()">－ 削除</button>
+      <button class="neon-btn secondary" onclick="toggleSampleData()">サンプルデータ表示</button>
     </div>
-
-    <!-- 操作ボタン -->
-    <div class="graph-generator-actions">
-      <button onclick="addDataRow()">+ データ追加</button>
-      <button onclick="updateChart()">更新</button>
-      <button class="download" onclick="downloadPNG()">⬇ PNGダウンロード</button>
+  </div>
+  
+  <!-- チャート表示エリア -->
+  <div class="chart-area">
+    <div class="chart-header">
+      <h2 id="chart-heading" class="chart-title-display">グラフタイトル</h2>
+      <button class="download-btn" onclick="downloadPNG()">
+        📥 PNGダウンロード
+      </button>
     </div>
+    <canvas id="main-chart"></canvas>
+    <p id="empty-message" style="text-align:center; color:var(--neon-pink); padding:2rem; font-size:1.2rem;">← データを追加してグラフを描画してください</p>
+  </div>
+</section>
 
-    <!-- グラフ表示エリア -->
-    <div class="graph-generator-canvas-container">
-      <canvas id="myChart"></canvas>
-    </div>
-  </section>
+<script>
+// ===== グラフ作成ツール用JavaScript =====
 
-  <!-- ===== グラフ描画ロジック ===== -->
-  <script>
-    // グローバル変数
-    let chartInstance = null;
-    const ctx = document.getElementById('myChart').getContext('2d');
+// グローバル変数
+let myChart = null;
+let tableData = []; // データ保持用
+let isSampleData = false;
 
-    // ネオンカラーパレット
-    const neonColors = {
-      blue: 'rgba(0, 217, 255, 0.8)',
-      pink: 'rgba(255, 0, 162, 0.8)',
-      green: 'rgba(0, 255, 136, 0.8)',
-      purple: 'rgba(178, 0, 255, 0.8)',
-      yellow: 'rgba(255, 255, 0, 0.7)',
-      orange: 'rgba(255, 165, 0, 0.8)',
-    };
-    const borderColors = [
-      '#00d9ff', '#ff00a2', '#00ff88', '#b200ff', '#ffff00', '#ffa500', '#00ffff', '#ff1493', '#7fff00', '#ff4500', '#00bfff', '#ff00ff'
+// 色定義（ネオンカラー）
+const neonColors = {
+  blue: 'rgba(0, 240, 255, 0.8)',
+  pink: 'rgba(255, 0, 170, 0.8)',
+  green: 'rgba(0, 255, 157, 0.8)',
+  yellow: 'rgba(255, 221, 0, 0.8)',
+  purple: 'rgba(170, 0, 255, 0.8)',
+  orange: 'rgba(255, 140, 0, 0.8)',
+};
+
+// DOM要素取得
+const ctx = document.getElementById('main-chart').getContext('2d');
+const graphTypeSelect = document.getElementById('graph-type');
+const graphTitleInput = document.getElementById('graph-title');
+const chartHeading = document.getElementById('chart-heading');
+const tableBody = document.getElementById('table-body');
+const emptyMessage = document.getElementById('empty-message');
+
+// 初期化処理
+function init() {
+  // タイトル連動
+  graphTitleInput.addEventListener('input', updateTitle);
+  
+  // グラフ種類変更
+  graphTypeSelect.addEventListener('change', renderChart);
+  
+  // データ変更イベント
+  document.addEventListener('input', function(e) {
+    if (e.target.matches('.data-label') || e.target.matches('.data-value') || e.target.matches('.data-bubble')) {
+      collectData();
+      renderChart();
+    }
+  });
+  
+  updateTitle();
+}
+
+// タイトル更新
+function updateTitle() {
+  const title = graphTitleInput.value || 'グラフタイトル';
+  chartHeading.textContent = title;
+  document.title = title + ' - グラフ作成サイト';
+}
+
+// 行追加
+function addRow(label = '', value = '', bubble = '') {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" class="data-label" value="${escapeHtml(label)}" placeholder="ラベル"></td>
+    <td><input type="number" class="data-value" value="${value}" placeholder="数値" step="any"></td>
+    <td><input type="number" class="data-bubble" value="${bubble}" placeholder="値(バブル/散布用)" step="any"></td>
+  `;
+  tableBody.appendChild(tr);
+  collectData();
+  renderChart();
+}
+
+// 行削除
+function removeLastRow() {
+  if (tableBody.rows.length > 0) {
+    tableBody.deleteRow(-1);
+    collectData();
+    renderChart();
+  }
+}
+
+// エスケープ処理
+function escapeHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// データ収集
+function collectData() {
+  tableData = [];
+  const rows = tableBody.rows;
+  for (let i = 0; i < rows.length; i++) {
+    const labelInput = rows[i].cells[0].querySelector('input');
+    const valueInput = rows[i].cells[1].querySelector('input');
+    const bubbleInput = rows[i].cells[2] ? rows[i].cells[2].querySelector('input') : null;
+    
+    const label = labelInput.value.trim() || `項目${i+1}`;
+    const value = parseFloat(valueInput.value) || 0;
+    const extra = bubbleInput ? parseFloat(bubbleInput.value) || 0 : 0;
+    tableData.push({ label, value, extra });
+  }
+}
+
+// サンプルデータ
+function toggleSampleData() {
+  if (isSampleData) {
+    tableBody.innerHTML = '';
+    isSampleData = false;
+  } else {
+    tableBody.innerHTML = '';
+    const sampleData = [
+      { label: 'データA', value: 45, extra: 30 },
+      { label: 'データB', value: 30, extra: 45 },
+      { label: 'データC', value: 68, extra: 20 },
+      { label: 'データD', value: 52, extra: 70 },
+      { label: 'データE', value: 25, extra: 50 }
     ];
+    sampleData.forEach(d => addRow(d.label, d.value, d.extra));
+    isSampleData = true;
+  }
+  collectData();
+  renderChart();
+}
 
-    // データ行の追加/削除
-    function addDataRow() {
-      const container = document.getElementById('dataListContainer');
-      const row = document.createElement('div');
-      row.className = 'data-row';
-      row.innerHTML = `
-        <input type="text" class="label-input" placeholder="項目名" value="新項目">
-        <input type="number" class="data-input" placeholder="数値" value="10">
-        <button class="delete-row" onclick="removeDataRow(this)" style="background:transparent;border:1px solid var(--neon-pink);color:var(--neon-pink);border-radius:4px;cursor:pointer;padding:0 8px;">✕</button>
-      `;
-      container.appendChild(row);
+// グラフ描画
+function renderChart() {
+  const type = graphTypeSelect.value;
+  
+  // データが空の場合
+  if (tableData.length === 0) {
+    if (myChart) {
+      myChart.destroy();
+      myChart = null;
     }
-
-    function removeDataRow(btn) {
-      const row = btn.closest('.data-row');
-      const container = document.getElementById('dataListContainer');
-      if (container.children.length > 1) {
-        row.remove();
-      } else {
-        // 最低1行は保持
-        alert('少なくとも1行は必要です');
-      }
-    }
-
-    // データ取得
-    function getData() {
-      const labels = [];
-      const values = [];
-      const rows = document.querySelectorAll('#dataListContainer .data-row');
-      rows.forEach(row => {
-        const label = row.querySelector('.label-input').value.trim() || '未設定';
-        const val = parseFloat(row.querySelector('.data-input').value) || 0;
-        labels.push(label);
-        values.push(val);
-      });
-      return { labels, values };
-    }
-
-    // グラフ更新関数
-    function updateChart() {
-      const title = document.getElementById('graphTitle').value || '無題のグラフ';
-      const chartType = document.getElementById('chartType').value;
-      const { labels, values } = getData();
-
-      // 既存チャート破棄
-      if (chartInstance) {
-        chartInstance.destroy();
-      }
-
-      // 基本の設定
-      const baseConfig = {
-        type: chartType,
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'データ',
-            data: values,
-            backgroundColor: [
-              neonColors.blue, neonColors.pink, neonColors.green, neonColors.purple, neonColors.yellow, neonColors.orange,
-              'rgba(0, 217, 255, 0.6)', 'rgba(255, 0, 162, 0.6)', 'rgba(0, 255, 136, 0.6)', 'rgba(178, 0, 255, 0.6)', 'rgba(255, 255, 0, 0.6)', 'rgba(255, 165, 0, 0.6)'
-            ],
-            borderColor: borderColors,
-            borderWidth: 2,
-            pointBackgroundColor: borderColors,
-            pointBorderColor: '#0a0a0f',
-            pointHoverBackgroundColor: '#fff',
-          }]
+    emptyMessage.style.display = 'block';
+    return;
+  }
+  emptyMessage.style.display = 'none';
+  
+  // データ準備
+  const labels = tableData.map(d => d.label);
+  const values = tableData.map(d => d.value);
+  const extras = tableData.map(d => d.extra);
+  
+  // グラフ設定
+  let config = {
+    type: getChartType(type),
+    data: {
+      labels: labels,
+      datasets: []
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: chartHeading.textContent,
+          color: '#ffdd00',
+          font: { size: 20, weight: 'bold' }
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          plugins: {
-            title: {
-              display: true,
-              text: title,
-              color: '#00d9ff',
-              font: { size: 20, weight: 'bold' },
-              padding: { top: 10, bottom: 10 }
-            },
-            legend: {
-              labels: { color: '#ccc' }
-            },
-            tooltip: {
-              backgroundColor: 'rgba(0,0,0,0.8)',
-              titleColor: '#00d9ff',
-              bodyColor: '#fff'
-            }
-          },
-          scales: {
-            x: {
-              ticks: { color: '#ccc' },
-              grid: { color: 'rgba(255,255,255,0.05)' }
-            },
-            y: {
-              beginAtZero: true,
-              ticks: { color: '#ccc' },
-              grid: { color: 'rgba(255,255,255,0.05)' }
-            }
-          }
+        legend: {
+          labels: { color: '#e0e0e0' }
         }
-      };
-
-      // タイプ別カスタマイズ
-      switch (chartType) {
-        case 'horizontalBar': {
-          baseConfig.options.indexAxis = 'y';
-          break;
+      },
+      scales: {
+        x: {
+          ticks: { color: '#e0e0e0' },
+          grid: { color: 'rgba(0,240,255,0.1)' }
+        },
+        y: {
+          ticks: { color: '#e0e0e0' },
+          grid: { color: 'rgba(0,240,255,0.1)' }
         }
-        case 'histogram': {
-          baseConfig.type = 'bar';
-          baseConfig.data.datasets[0].barPercentage = 1.0;
-          baseConfig.data.datasets[0].categoryPercentage = 1.0;
-          break;
+      }
+    }
+  };
+  
+  // タイプ別データセット
+  switch(type) {
+    case 'bar':
+    case 'horizontalBar':
+      config.data.datasets = [{
+        label: 'データ',
+        data: values,
+        backgroundColor: neonColors.blue,
+        borderColor: neonColors.blue,
+        borderWidth: 2,
+        hoverBackgroundColor: neonColors.pink
+      }];
+      if (type === 'horizontalBar') {
+        config.indexAxis = 'y';
+      }
+      break;
+      
+    case 'line':
+      config.data.datasets = [{
+        label: 'データ',
+        data: values,
+        borderColor: neonColors.green,
+        backgroundColor: neonColors.green + '33',
+        borderWidth: 3,
+        pointBackgroundColor: neonColors.green,
+        pointBorderColor: '#000',
+        pointBorderWidth: 2,
+        tension: 0.4
+      }];
+      break;
+      
+    case 'pie':
+      config.data.datasets = [{
+        label: 'データ',
+        data: values,
+        backgroundColor: [
+          neonColors.blue + 'cc',
+          neonColors.pink + 'cc',
+          neonColors.green + 'cc',
+          neonColors.yellow + 'cc',
+          neonColors.purple + 'cc',
+          neonColors.orange + 'cc'
+        ],
+        borderColor: '#000',
+        borderWidth: 2
+      }];
+      // 円グラフではscalesを無効化
+      config.options.scales = {};
+      break;
+      
+    case 'histogram':
+      config.data.datasets = [{
+        label: '頻度',
+        data: values.map((v, i) => ({ x: i, y: v })),
+        backgroundColor: neonColors.pink,
+        borderColor: neonColors.pink,
+        borderWidth: 2
+      }];
+      config.type = 'bar';
+      break;
+      
+    case 'scatter':
+      config.data.datasets = [{
+        label: '散布',
+        data: values.map((v, i) => ({ x: v, y: extras[i] })),
+        backgroundColor: neonColors.blue,
+        borderColor: neonColors.blue,
+        pointRadius: 6,
+        pointHoverRadius: 10
+      }];
+      config.type = 'scatter';
+      break;
+      
+    case 'stackedBar':
+      config.options.scales.x.stacked = true;
+      config.options.scales.y.stacked = true;
+      config.data.datasets = [
+        {
+          label: 'データ1',
+          data: values,
+          backgroundColor: neonColors.blue + 'cc',
+          borderColor: neonColors.blue,
+          borderWidth: 1
+        },
+        {
+          label: 'データ2',
+          data: extras,
+          backgroundColor: neonColors.pink + 'cc',
+          borderColor: neonColors.pink,
+          borderWidth: 1
         }
-        case 'stackedBar': {
-          baseConfig.type = 'bar';
-          baseConfig.options.scales.x.stacked = true;
-          baseConfig.options.scales.y.stacked = true;
-          // 複数データセットの例
-          baseConfig.data.datasets = [
-            {
-              label: '系列1',
-              data: values,
-              backgroundColor: neonColors.blue,
-              borderColor: '#00d9ff',
-              borderWidth: 1
-            },
-            {
-              label: '系列2',
-              data: values.map(v => v * 0.5),
-              backgroundColor: neonColors.pink,
-              borderColor: '#ff00a2',
-              borderWidth: 1
-            }
-          ];
-          break;
-        }
-        case 'bubble': {
-          baseConfig.type = 'bubble';
-          baseConfig.data.datasets[0].data = values.map((val, i) => ({
+      ];
+      break;
+      
+    case 'radar':
+      config.type = 'radar';
+      config.data.datasets = [{
+        label: 'データ',
+        data: values,
+        borderColor: neonColors.green,
+        backgroundColor: neonColors.green + '33',
+        borderWidth: 2,
+        pointBackgroundColor: neonColors.green,
+        pointBorderColor: '#000'
+      }];
+      config.options.scales = {};
+      break;
+      
+    case 'bubble':
+      config.type = 'bubble';
+      config.data.datasets = [{
+        label: 'バブル',
+        data: values.map((v, i) => ({ x: i, y: v, r: Math.max(5, extras[i] / 5) })),
+        backgroundColor: neonColors.yellow + '99',
+        borderColor: neonColors.yellow,
+        borderWidth: 2
+      }];
+      break;
+      
+    case 'boxPlot':
+      // 箱ひげ図（プラグイン）
+      config.type = 'boxplot';
+      config.data.datasets = [{
+        label: '箱ひげ',
+        data: tableData.map(d => ({
+          min: Math.max(0, d.value - d.extra),
+          q1: Math.max(0, d.value - d.extra * 0.5),
+          median: d.value,
+          q3: d.value + d.extra * 0.5,
+          max: d.value + d.extra
+        })),
+        backgroundColor: neonColors.purple + '88',
+        borderColor: neonColors.purple,
+        borderWidth: 2
+      }];
+      break;
+      
+    case 'heatmap':
+      // ヒートマップ（マトリックスプラグイン）
+      config.type = 'matrix';
+      config.data = {
+        datasets: [{
+          label: 'ヒートマップ',
+          data: tableData.map((d, i) => ({
             x: i,
-            y: val,
-            r: Math.abs(val) * 2
-          }));
-          break;
-        }
-        case 'scatter': {
-          baseConfig.type = 'scatter';
-          baseConfig.data.datasets[0].data = values.map((val, i) => ({ x: i+1, y: val }));
-          break;
-        }
-        case 'boxplot': {
-          baseConfig.type = 'boxplot';
-          // 箱ひげ図用データ形式: [min, Q1, median, Q3, max]
-          const sorted = [...values].sort((a,b) => a-b);
-          const q1 = sorted[Math.floor(sorted.length*0.25)] || 0;
-          const median = sorted[Math.floor(sorted.length*0.5)] || 0;
-          const q3 = sorted[Math.floor(sorted.length*0.75)] || 0;
-          baseConfig.data.datasets[0].data = [[Math.min(...values), q1, median, q3, Math.max(...values)]];
-          break;
-        }
-        case 'heatmap': {
-          baseConfig.type = 'matrix';
-          const matrixData = [];
-          for (let i=0; i<labels.length; i++) {
-            for (let j=0; j<labels.length; j++) {
-              matrixData.push({
-                x: j,
-                y: i,
-                v: values[(i+j)%values.length]
-              });
-            }
-          }
-          baseConfig.data.datasets[0].data = matrixData;
-          baseConfig.data.datasets[0].backgroundColor = (ctx) => {
-            const v = ctx.dataset.data[ctx.dataIndex].v;
-            const max = Math.max(...values);
-            const min = Math.min(...values);
-            const ratio = (v - min) / (max - min || 1);
-            return `rgba(0, 217, 255, ${0.3 + ratio * 0.7})`;
-          };
-          baseConfig.data.datasets[0].borderColor = '#0a0a0f';
-          baseConfig.data.datasets[0].borderWidth = 1;
-          break;
-        }
-        case 'sankey': {
-          baseConfig.type = 'sankey';
-          // サンキーダイアグラム用データ生成
-          const nodes = labels;
-          const edges = [];
-          for (let i=0; i<labels.length-1; i++) {
-            edges.push({
-              from: labels[i],
-              to: labels[i+1],
-              flow: Math.abs(values[i])
-            });
-          }
-          baseConfig.data.datasets[0].data = {
-            nodes: nodes,
-            edges: edges
-          };
-          break;
-        }
-      }
+            y: 0,
+            v: d.value
+          })),
+          backgroundColor(context) {
+            const value = context.dataset.data[context.dataIndex].v;
+            const alpha = Math.min(1, value / 100);
+            return `rgba(0, 240, 255, ${alpha})`;
+          },
+          borderColor: '#000',
+          borderWidth: 1,
+          width: 50,
+          height: 50
+        }]
+      };
+      config.options.scales = {
+        x: { display: false },
+        y: { display: false }
+      };
+      break;
+      
+    case 'sankey':
+      // サンキーダイアグラム（簡易的な自作描画）
+      drawSankey();
+      return;
+      
+    default:
+      break;
+  }
+  
+  // グラフ生成
+  if (myChart) {
+    myChart.destroy();
+  }
+  myChart = new Chart(ctx, config);
+}
 
-      // グラフ生成
-      chartInstance = new Chart(ctx, baseConfig);
-    }
+// グラフタイプ変換
+function getChartType(type) {
+  const types = {
+    bar: 'bar',
+    horizontalBar: 'bar',
+    line: 'line',
+    pie: 'pie',
+    histogram: 'bar',
+    scatter: 'scatter',
+    stackedBar: 'bar',
+    radar: 'radar',
+    bubble: 'bubble',
+    boxPlot: 'boxplot',
+    heatmap: 'matrix',
+    sankey: 'sankey'
+  };
+  return types[type] || 'bar';
+}
 
-    // ダウンロード機能
-    function downloadPNG() {
-      if (!chartInstance) {
-        alert('グラフがありません');
-        return;
-      }
-      const title = document.getElementById('graphTitle').value || 'グラフタイトル';
-      const link = document.createElement('a');
-      link.download = title + '.png';
-      link.href = document.getElementById('myChart').toDataURL('image/png');
-      link.click();
-    }
+// サンキー図（簡易的自作）
+function drawSankey() {
+  const canvas = document.getElementById('main-chart');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  
+  ctx.clearRect(0, 0, w, h);
+  
+  // 背景
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(0, 0, w, h);
+  
+  // タイトル
+  ctx.fillStyle = '#ffdd00';
+  ctx.font = 'bold 20px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(chartHeading.textContent, w/2, 40);
+  
+  const total = tableData.reduce((sum, d) => sum + d.value, 0) || 1;
+  const width = w - 200;
+  const startX = 100;
+  const startY = 80;
+  const height = h - 160;
+  
+  tableData.forEach((d, i) => {
+    const h_block = (d.value / total) * height;
+    const y = startY + (i * (height / tableData.length) + (height / tableData.length - h_block) / 2);
+    const x = startX;
+    
+    // 左ブロック（入力）
+    ctx.fillStyle = neonColors.blue;
+    ctx.fillRect(x, y, 40, Math.max(20, h_block));
+    ctx.strokeStyle = '#fff';
+    ctx.strokeRect(x, y, 40, Math.max(20, h_block));
+    
+    // ラベル
+    ctx.fillStyle = '#e0e0e0';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(d.label, x + 50, y + h_block/2);
+    
+    // 右ブロック（出力）
+    const h_block2 = (d.extra / total) * height;
+    const y2 = startY + (i * (height / tableData.length) + (height / tableData.length - h_block2) / 2);
+    const x2 = w - 100;
+    
+    ctx.fillStyle = neonColors.pink;
+    ctx.fillRect(x2, y2, 40, Math.max(20, h_block2));
+    ctx.strokeStyle = '#fff';
+    ctx.strokeRect(x2, y2, 40, Math.max(20, h_block2));
+    
+    // 接続線（グラデーション）
+    const gradient = ctx.createLinearGradient(x+40, y+h_block/2, x2, y2+h_block2/2);
+    gradient.addColorStop(0, neonColors.blue);
+    gradient.addColorStop(1, neonColors.pink);
+    ctx.strokeStyle = gradient;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x+40, y+h_block/2);
+    ctx.bezierCurveTo(x+150, y+h_block/2, x2-100, y2+h_block2/2, x2, y2+h_block2/2);
+    ctx.stroke();
+  });
+}
 
-    // リアルタイム更新（タイトル入力）
-    document.getElementById('graphTitle').addEventListener('input', function() {
-      if (chartInstance) {
-        chartInstance.options.plugins.title.text = this.value || '';
-        chartInstance.update();
-      }
-    });
+// PNGダウンロード
+function downloadPNG() {
+  const canvas = document.getElementById('main-chart');
+  const title = chartHeading.textContent || 'グラフタイトル';
+  const link = document.createElement('a');
+  link.download = title + '.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
 
-    // 初期化
-    window.addEventListener('DOMContentLoaded', updateChart);
-  </script>
+// 初期実行
+init();
+</script>
 
-  <!-- 他のAIサイトのコンテンツが続く想定 -->
 </body>
 </html>
