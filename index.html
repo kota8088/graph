@@ -8,7 +8,7 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E">
     <!-- フォント -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- グラフライブラリCDN一括読み込み（順番厳守） -->
+    <!-- グラフライブラリCDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-box-and-violin@3.2.0/dist/chartjs-chart-box-and-violin.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.0/dist/chartjs-chart-matrix.min.js"></script>
@@ -24,17 +24,14 @@
             <span class="graph-gen-badge">AI Tools</span>
         </div>
 
-        <!-- メインコンテナ -->
         <div class="graph-gen-container">
-            <!-- コントロールパネル（左） -->
+            <!-- コントロールパネル -->
             <div class="graph-gen-controls">
-                <!-- グラフタイトル入力（任意） -->
                 <div class="graph-gen-card">
                     <label class="graph-gen-label">グラフタイトル（任意）</label>
                     <input type="text" id="graphTitleInput" class="graph-gen-input" placeholder="例: 月間売上データ" value="">
                 </div>
 
-                <!-- 種類選択 -->
                 <div class="graph-gen-card">
                     <label class="graph-gen-label">グラフ種類</label>
                     <select id="graphTypeSelect" class="graph-gen-select">
@@ -53,20 +50,19 @@
                     </select>
                 </div>
 
-                <!-- データ入力エリア -->
+                <!-- データ入力（ラベルと値のみ） -->
                 <div class="graph-gen-card graph-gen-data-card">
-                    <label class="graph-gen-label">データ入力 (初期状態は空です)</label>
+                    <label class="graph-gen-label">データ入力 (ラベルと値)</label>
                     <div id="dataRowsContainer" class="graph-gen-rows"></div>
                     <button id="addDataRowBtn" class="graph-gen-add-btn">+ データ行を追加</button>
                 </div>
 
-                <!-- スクリーンショット保存ボタン -->
                 <div class="graph-gen-card graph-gen-download-card">
                     <button id="screenshotBtn" class="graph-gen-download-btn">📸 スクリーンショット保存</button>
                 </div>
             </div>
 
-            <!-- チャート表示エリア（右） -->
+            <!-- チャート表示 -->
             <div class="graph-gen-chart-area">
                 <div id="chartCard" class="graph-gen-chart-wrap">
                     <canvas id="graphCanvas"></canvas>
@@ -77,7 +73,6 @@
 
     <!-- =============== 2. CSS部分 =============== -->
     <style>
-        /* ネオンカラー変数 */
         :root {
             --neon-blue: #00f3ff;
             --neon-pink: #ff007a;
@@ -89,7 +84,6 @@
             --border-neon: rgba(0, 243, 255, 0.5);
         }
 
-        /* 全体をダークネオン基調に */
         .graph-gen-section {
             background: var(--bg-dark);
             padding: 20px;
@@ -99,11 +93,8 @@
             overflow-x: hidden;
             box-sizing: border-box;
         }
-        .graph-gen-section * {
-            box-sizing: border-box;
-        }
+        .graph-gen-section * { box-sizing: border-box; }
 
-        /* タイトル */
         .graph-gen-title-area {
             display: flex;
             align-items: center;
@@ -134,7 +125,6 @@
             animation: neonPulse 1.5s infinite alternate;
         }
 
-        /* メインコンテナ：レスポンシブFlex */
         .graph-gen-container {
             display: flex;
             flex-wrap: wrap;
@@ -142,22 +132,17 @@
             max-width: 1400px;
             margin: 0 auto;
         }
-
-        /* コントロールパネル（左側） */
         .graph-gen-controls {
             flex: 0 0 380px;
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
-
-        /* チャートエリア（右側） */
         .graph-gen-chart-area {
             flex: 1 1 500px;
             min-width: 300px;
         }
 
-        /* カード型UI */
         .graph-gen-card {
             background: var(--card-bg);
             border: 1px solid var(--border-neon);
@@ -172,7 +157,6 @@
             margin-bottom: 10px;
             color: var(--neon-green);
             text-shadow: 0 0 5px var(--neon-green);
-            letter-spacing: 0.5px;
         }
         .graph-gen-input,
         .graph-gen-select {
@@ -192,7 +176,6 @@
             box-shadow: 0 0 15px var(--neon-blue);
         }
 
-        /* データ行 */
         .graph-gen-rows {
             display: flex;
             flex-direction: column;
@@ -231,7 +214,6 @@
             box-shadow: 0 0 10px rgba(255, 85, 85, 0.5);
         }
 
-        /* 追加ボタン */
         .graph-gen-add-btn {
             width: 100%;
             padding: 10px;
@@ -249,10 +231,7 @@
             box-shadow: 0 0 20px rgba(255, 0, 122, 0.8);
         }
 
-        /* スクリーンショットボタン */
-        .graph-gen-download-card {
-            text-align: center;
-        }
+        .graph-gen-download-card { text-align: center; }
         .graph-gen-download-btn {
             padding: 12px 20px;
             background: linear-gradient(45deg, var(--neon-blue), var(--neon-green));
@@ -270,7 +249,6 @@
             box-shadow: 0 0 30px rgba(0, 243, 255, 0.8);
         }
 
-        /* チャート表示エリア */
         .graph-gen-chart-wrap {
             background: var(--card-bg);
             border: 1px solid var(--border-neon);
@@ -285,27 +263,16 @@
         }
         #graphCanvas {
             width: 100% !important;
-            height: 550px !important; /* レスポンシブ高さ調整 */
+            height: 550px !important;
             max-height: 80vh;
         }
 
-        /* スマホ対応（ブレイクポイント） */
         @media (max-width: 768px) {
-            .graph-gen-container {
-                flex-direction: column;
-            }
-            .graph-gen-controls {
-                flex: 0 0 100%;
-            }
-            .graph-gen-chart-area {
-                flex: 0 0 100%;
-            }
-            #graphCanvas {
-                height: 400px !important;
-            }
-            .graph-gen-site-title {
-                font-size: 1.5rem;
-            }
+            .graph-gen-container { flex-direction: column; }
+            .graph-gen-controls { flex: 0 0 100%; }
+            .graph-gen-chart-area { flex: 0 0 100%; }
+            #graphCanvas { height: 400px !important; }
+            .graph-gen-site-title { font-size: 1.5rem; }
         }
 
         @keyframes neonPulse {
@@ -325,18 +292,16 @@
             const chartCard = document.getElementById('chartCard');
             let chartInstance = null;
 
-            // ネオンカラーパレット
             const neonColors = ['#00f3ff', '#ff007a', '#39ff14', '#fff700', '#ff6b6b', '#a29bfe', '#fd79a8', '#55efc4', '#ff9f43', '#6c5ce7', '#00cec9', '#e17055'];
             const colorCount = neonColors.length;
 
-            // --- データ行追加関数 ---
-            function addDataRow(label = '', value = '', extra = '') {
+            // データ行追加（ラベルと値の2項目）
+            function addDataRow(label = '', value = '') {
                 const row = document.createElement('div');
                 row.className = 'graph-gen-data-row';
                 row.innerHTML = `
-                    <input type="text" class="data-label" placeholder="ラベル（X軸）" value="${label}">
-                    <input type="text" class="data-value" placeholder="値（Y軸）" value="${value}">
-                    <input type="text" class="data-extra" placeholder="追加" value="${extra}">
+                    <input type="text" class="data-label" placeholder="ラベル" value="${label}">
+                    <input type="text" class="data-value" placeholder="値" value="${value}">
                     <button type="button" class="graph-gen-del-btn">🗑️</button>
                 `;
                 row.querySelector('.graph-gen-del-btn').addEventListener('click', function() {
@@ -349,34 +314,29 @@
                 dataRowsContainer.appendChild(row);
             }
 
-            // --- データ収集関数 ---
+            // データ収集
             function collectData() {
                 const rows = dataRowsContainer.querySelectorAll('.graph-gen-data-row');
                 const labels = [];
                 const values = [];
-                const extras = [];
                 rows.forEach(row => {
                     const label = row.querySelector('.data-label').value.trim();
                     const value = row.querySelector('.data-value').value.trim();
-                    const extra = row.querySelector('.data-extra').value.trim();
                     if (label !== '' && value !== '') {
                         labels.push(label);
                         values.push(value);
-                        extras.push(extra);
                     }
                 });
-                return { labels, values, extras };
+                return { labels, values };
             }
 
-            // --- グラフ更新関数 ---
+            // グラフ更新
             function updateChart() {
                 const type = graphTypeSelect.value;
                 const title = graphTitleInput.value.trim();
-                const { labels, values, extras } = collectData();
+                const { labels, values } = collectData();
 
-                if (chartInstance) {
-                    chartInstance.destroy();
-                }
+                if (chartInstance) chartInstance.destroy();
 
                 const ctx = canvas.getContext('2d');
                 let data = { labels: [], datasets: [] };
@@ -512,13 +472,14 @@
                         break;
                     case 'bubble':
                         chartType = 'bubble';
+                        // バブルサイズは値の大きさに比例させる（簡易実装）
                         data = {
                             datasets: [{
                                 label: 'バブル',
                                 data: labels.map((lab, i) => ({
                                     x: parseFloat(lab) || i,
                                     y: parseFloat(values[i]) || 0,
-                                    r: parseFloat(extras[i]) || 8,
+                                    r: Math.abs(parseFloat(values[i])) * 0.5 || 5,
                                 })),
                                 backgroundColor: neonColors[4] + '88',
                                 borderColor: neonColors[4],
@@ -549,12 +510,12 @@
                         break;
                     case 'heatmap':
                         chartType = 'matrix';
-                        const heatData = [];
-                        labels.forEach((lab, i) => {
-                            const y = parseFloat(values[i]) || i;
-                            const v = parseFloat(extras[i]) || 1;
-                            heatData.push({ x: lab, y: y, v: v });
-                        });
+                        // 値をそのまま強度（v）として使用
+                        const heatData = labels.map((lab, i) => ({
+                            x: lab,
+                            y: parseFloat(values[i]) || i,
+                            v: parseFloat(values[i]) || 1,
+                        }));
                         data = {
                             labels: labels,
                             datasets: [{
@@ -574,15 +535,12 @@
                         break;
                     case 'sankey':
                         chartType = 'sankey';
-                        const flowData = [];
-                        labels.forEach((lab, i) => {
-                            const from = lab;
-                            const to = values[i];
-                            const flow = parseFloat(extras[i]) || 1;
-                            if (from && to) {
-                                flowData.push({ from, to, flow });
-                            }
-                        });
+                        // from=ラベル, to=値, flow=値（簡易）
+                        const flowData = labels.map((lab, i) => ({
+                            from: lab,
+                            to: values[i],
+                            flow: parseFloat(values[i]) || 1,
+                        }));
                         data = {
                             labels: labels,
                             datasets: [{
@@ -606,7 +564,7 @@
                     animation: { duration: 400, easing: 'easeOutQuart' },
                     plugins: {
                         title: {
-                            display: title !== '', // タイトルが空なら非表示
+                            display: title !== '',
                             text: title,
                             color: '#00f3ff',
                             font: { size: 20, family: "'Orbitron', sans-serif", weight: 'bold' },
@@ -652,7 +610,7 @@
                 });
             }
 
-            // --- スクリーンショット保存ボタン ---
+            // スクリーンショット保存
             document.getElementById('screenshotBtn').addEventListener('click', function() {
                 if (!chartInstance) {
                     alert('先にグラフを生成してください');
@@ -667,7 +625,7 @@
                 });
             });
 
-            // --- イベントリスナー ---
+            // イベント
             addDataRowBtn.addEventListener('click', function() {
                 addDataRow();
                 updateChart();
@@ -675,8 +633,8 @@
             graphTitleInput.addEventListener('input', updateChart);
             graphTypeSelect.addEventListener('change', updateChart);
 
-            // --- 初期化: 空行を1つ追加し、グラフを描画 ---
-            addDataRow('', '', '');
+            // 初期化
+            addDataRow('', '');
             updateChart();
         })();
     </script>
