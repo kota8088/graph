@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>グラフ作成サイト</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
     <style>
         * {
             box-sizing: border-box;
@@ -489,34 +490,41 @@
                 });
             }
 
-            function getFreqRows() {
-                const width = parseFloat(document.getElementById('freqWidth').value) || 10;
+            // 入力中の不完全な行を除外し、下限値の昇順にソートしたデータを返す
+            function getValidFreqRows() {
+                const widthText = document.getElementById('freqWidth').value.trim();
+                const width = parseFloat(widthText);
+                if (isNaN(width) || width <= 0) return { width: 10, data: [] };
+
                 const rows = Array.from(document.querySelectorAll('#freqRows .row'));
-                const data = rows.map(row => {
+                const validRows = [];
+                rows.forEach(row => {
                     const lowerText = row.querySelector('.lower-input').value.trim();
                     const freqText = row.querySelector('.freq-input').value.trim();
-                    const lower = lowerText === '' ? null : Number(lowerText);
-                    const freq = freqText === '' ? null : Number(freqText);
-                    return { lower, freq };
+                    if (lowerText === '' || freqText === '') return;
+                    const lower = Number(lowerText);
+                    const freq = Number(freqText);
+                    if (isNaN(lower) || isNaN(freq)) return;
+                    validRows.push({ lower, freq });
                 });
-                return { width, data };
+                validRows.sort((a, b) => a.lower - b.lower);
+                return { width, data: validRows };
             }
 
             function updateFreqTable() {
-                const { width, data } = getFreqRows();
-                const valid = data.filter(d => d.lower !== null && d.freq !== null);
-                const total = valid.reduce((sum, d) => sum + d.freq, 0);
+                const { width, data } = getValidFreqRows();
+                const total = data.reduce((sum, d) => sum + d.freq, 0);
                 let cum = 0;
                 let html =
                     '<table><thead><tr><th>階級（以上〜未満）</th><th>度数</th><th>相対度数</th><th>百分率</th><th>累積相対度数</th></tr></thead><tbody>';
-                if (valid.length === 0) {
+                if (data.length === 0) {
                     html += '<tr><td colspan="5" style="text-align:center;color:#888;">データを入力してください</td></tr>';
                 } else {
-                    valid.forEach((d, i) => {
+                    data.forEach((d, i) => {
                         const upper = d.lower + width;
                         const rel = total > 0 ? d.freq / total : 0;
                         cum += rel;
-                        const isLast = i === valid.length - 1;
+                        const isLast = i === data.length - 1;
                         const cumDisplay = (total > 0 && isLast) ? '1.000' : cum.toFixed(3);
                         html +=
                             `<tr><td>${d.lower}〜${upper}</td><td>${d.freq}</td><td>${rel.toFixed(3)}</td><td>${(rel*100).toFixed(1)}%</td><td>${cumDisplay}</td></tr>`;
@@ -554,12 +562,13 @@
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#cccccc' },
+                            ticks: { color: '#cccccc', autoSkip: false, maxRotation: 0 },
                             grid: { color: 'rgba(255,255,255,0.08)' }
                         },
                         y: {
                             ticks: { color: '#cccccc' },
-                            grid: { color: 'rgba(255,255,255,0.08)' }
+                            grid: { color: 'rgba(255,255,255,0.08)' },
+                            beginAtZero: true
                         }
                     }
                 };
@@ -688,10 +697,16 @@
             }
 
             function buildHistogramConfig(title) {
-                const { width, data } = getFreqRows();
-                const valid = data.filter(d => d.lower !== null && d.freq !== null);
-                const labels = valid.map(d => `${d.lower}〜${d.lower + width}`);
-                const values = valid.map(d => d.freq);
+                const { width, data } = getValidFreqRows();
+                const labels = data.map(d => `${d.lower}〜${d.lower + width}`);
+                const values = data.map(d => d.freq);
+                const options = baseOptions(title);
+                // 軸のバグガード：表示ラベルが少ない場合でも潰れないよう設定
+                options.scales.x.autoSkip = false;
+                options.scales.x.ticks.maxRotation = 0;
+                options.scales.x.ticks.minRotation = 0;
+                options.scales.y.beginAtZero = true;
+                options.scales.y.ticks.precision = 0;
                 return {
                     type: 'bar',
                     data: {
@@ -706,7 +721,7 @@
                             categoryPercentage: 1.0
                         }]
                     },
-                    options: baseOptions(title)
+                    options
                 };
             }
 
@@ -1029,7 +1044,7 @@
                 debounceTimer = setTimeout(() => {
                     updateFreqTable();
                     renderChart();
-                }, 250);
+                }, 300);
             }
 
             chartTypeSelect.addEventListener('change', () => {
@@ -1073,12 +1088,10 @@
             document.getElementById('freqWidth').addEventListener('input', scheduleRender);
 
             document.getElementById('sortFreqBtn').addEventListener('click', () => {
-                const { data } = getFreqRows();
-                const valid = data.filter(d => d.lower !== null && d.freq !== null);
-                valid.sort((a, b) => a.lower - b.lower);
+                const { data } = getValidFreqRows();
                 freqRowsContainer.innerHTML = '';
-                valid.forEach(d => addFreqRow(d.lower, d.freq));
-                if (valid.length === 0) addFreqRow();
+                data.forEach(d => addFreqRow(d.lower, d.freq));
+                if (data.length === 0) addFreqRow();
                 scheduleRender();
             });
 
