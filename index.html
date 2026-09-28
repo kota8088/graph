@@ -1,893 +1,990 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>グラフ作成ツール</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js">
-    </script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>グラフ作成ツール（デモ）</title>
 
-        body {
-            background: #0a0a0f;
-            color: #fff;
-            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-            min-height: 100vh;
-        }
+  <!-- ファビコン（📊 絵文字をSVGで表示） -->
+  <link rel="icon" sizes="any" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E">
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+  <!-- Chart.js　本体 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <!-- 追加プラグイン：箱ひげ図 -->
+  <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot@4.2.1/dist/chartjs-chart-boxplot.min.js"></script>
+  <!-- 追加プラグイン：ヒートマップ（matrix） -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js"></script>
+  <!-- 追加プラグイン：サンキーダイアグラム -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-sankey@0.12.0/dist/chartjs-chart-sankey.min.js"></script>
 
-        header {
-            text-align: center;
-            padding: 18px 20px;
-            border-bottom: 2px solid #00f0ff;
-            box-shadow: 0 0 30px rgba(0, 240, 255, 0.25);
-            border-radius: 0 0 20px 20px;
-            background: #0d0f14;
-            margin-bottom: 20px;
-        }
+  <style>
+    /* ===== リセットと基本スタイル ===== */
+    * {
+      box-sizing: border-box;
+    }
 
-        header h1 {
-            color: #00f0ff;
-            text-shadow: 0 0 15px #00f0ff, 0 0 40px rgba(0, 240, 255, 0.4);
-            font-size: 2rem;
-            letter-spacing: 2px;
-        }
+    .cyber-graph-generator {
+      --cyber-bg: #0b0d1a;
+      --cyber-neon-blue: #00f0ff;
+      --cyber-neon-pink: #ff00aa;
+      --cyber-neon-purple: #9d00ff;
+      --cyber-neon-green: #00ff9d;
+      --cyber-text: #e0e4ff;
+      --cyber-panel-bg: rgba(20, 24, 45, 0.85);
+      --cyber-border: #2a2f4f;
 
-        .main-layout {
-            display: flex;
-            gap: 20px;
-            align-items: stretch;
-        }
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: radial-gradient(circle at 20% 30%, #181c34, var(--cyber-bg));
+      color: var(--cyber-text);
+      padding: 2rem 1.5rem;
+      border-radius: 28px;
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.3), 0 0 20px rgba(255, 0, 170, 0.2);
+      max-width: 1500px;
+      margin: 2rem auto;
+      border: 1px solid var(--cyber-border);
+      position: relative;
+      z-index: 1;
+    }
 
-        .sidebar {
-            width: 360px;
-            padding: 20px;
-            background: #0d0f14;
-            border: 2px solid #00f0ff;
-            border-radius: 16px;
-            box-shadow: 0 0 30px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.5);
-            flex-shrink: 0;
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
-        }
+    .cyber-graph-generator::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(255, 0, 170, 0.12), rgba(0, 240, 255, 0.05));
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: -1;
+    }
 
-        .sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #00f0ff;
-            border-radius: 4px;
-        }
+    .cyber-section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      text-shadow: 0 0 12px var(--cyber-neon-blue), 0 0 24px var(--cyber-neon-pink);
+      margin: 0 0 1.5rem;
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        .chart-container {
-            flex: 1;
-            background: #0d0f14;
-            border: 2px solid #ff00a0;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 0 30px rgba(255, 0, 160, 0.15), inset 0 0 30px rgba(0, 0, 0, 0.5);
-            min-height: 600px;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-width: 0;
-        }
+    /* レイアウト（左右2カラム） */
+    .cyber-layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) 2fr;
+      gap: 24px;
+    }
 
-        #myChart {
-            max-width: 100%;
-            max-height: 600px;
-            width: 100% !important;
-            height: auto !important;
-        }
+    .cyber-sidebar {
+      background: var(--cyber-panel-bg);
+      border-radius: 18px;
+      padding: 1.5rem;
+      border: 1px solid var(--cyber-border);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    }
 
-        .label {
-            display: block;
-            margin: 12px 0 4px;
-            font-size: 14px;
-            color: #00f0ff;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
+    .cyber-main {
+      background: var(--cyber-panel-bg);
+      border-radius: 18px;
+      padding: 1.5rem;
+      border: 1px solid var(--cyber-border);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+    }
 
-        select,
-        input[type="text"],
-        input[type="number"] {
-            background: #1a1a2e;
-            color: #00f0ff;
-            border: 1px solid #00f0ff;
-            border-radius: 8px;
-            padding: 10px 14px;
-            width: 100%;
-            font-size: 14px;
-            transition: 0.3s;
-            outline: none;
-        }
+    .cyber-canvas-wrap {
+      flex: 1;
+      background: #05070f;
+      border-radius: 14px;
+      padding: 12px;
+      border: 1px solid #1e2340;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+      position: relative;
+      min-height: 420px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-        select:focus,
-        input:focus {
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
-            border-color: #ff00a0;
-        }
+    .cyber-canvas {
+      width: 100% !important;
+      height: 100% !important;
+      max-height: 65vh;
+    }
 
-        button {
-            background: linear-gradient(135deg, #00f0ff, #ff00a0);
-            color: #0a0a0f;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 20px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 700;
-            transition: 0.3s;
-            letter-spacing: 0.5px;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
-        }
+    /* フォーム共通 */
+    .cyber-field {
+      margin-bottom: 1.25rem;
+    }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 30px rgba(0, 240, 255, 0.5), 0 0 60px rgba(255, 0, 160, 0.3);
-        }
+    .cyber-label {
+      display: block;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+      color: var(--cyber-neon-blue);
+      text-shadow: 0 0 6px var(--cyber-neon-blue);
+    }
 
-        button:active {
-            transform: translateY(1px);
-        }
+    .cyber-input,
+    .cyber-select {
+      width: 100%;
+      padding: 10px 12px;
+      background: #11142a;
+      border: 1px solid var(--cyber-border);
+      border-radius: 10px;
+      color: var(--cyber-text);
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
 
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-            flex-wrap: wrap;
-        }
+    .cyber-input:focus,
+    .cyber-select:focus {
+      outline: none;
+      border-color: var(--cyber-neon-blue);
+      box-shadow: 0 0 14px rgba(0, 240, 255, 0.3);
+    }
 
-        .btn-group button {
-            flex: 1;
-            padding: 10px;
-            font-size: 13px;
-        }
+    .cyber-select option {
+      background: #11142a;
+      color: #e0e4ff;
+    }
 
-        #downloadBtn {
-            width: 100%;
-            margin-top: 20px;
-            font-size: 16px;
-            background: linear-gradient(135deg, #00ff41, #00f0ff);
-        }
+    /* 入力モード切り替え */
+    .cyber-mode-switch {
+      display: flex;
+      gap: 6px;
+      background: #0c0f1e;
+      padding: 6px;
+      border-radius: 24px;
+      border: 1px solid var(--cyber-border);
+    }
 
-        .data-input {
-            margin-top: 20px;
-            border-top: 1px solid #333;
-            padding-top: 15px;
-        }
+    .cyber-mode-radio {
+      display: none;
+    }
 
-        .data-input h3 {
-            color: #ff00a0;
-            margin-bottom: 10px;
-            font-size: 16px;
-            text-shadow: 0 0 10px rgba(255, 0, 160, 0.3);
-        }
+    .cyber-mode-label {
+      flex: 1;
+      text-align: center;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      border: 1px solid transparent;
+    }
 
-        table#dataTable {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 5px;
-        }
+    .cyber-mode-radio:checked + .cyber-mode-label {
+      background: linear-gradient(135deg, var(--cyber-neon-blue), var(--cyber-neon-purple));
+      color: #05070f;
+      font-weight: 600;
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.6);
+      border-color: var(--cyber-neon-blue);
+    }
 
-        #dataTable th,
-        #dataTable td {
-            padding: 4px 2px;
-            border: 1px solid #2a2a4a;
-            text-align: center;
-            position: relative;
-        }
+    /* データパネル */
+    .cyber-data-panel {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed #2a2f4f;
+    }
 
-        #dataTable th {
-            background: #1a1a2e;
-            color: #ff00a0;
-            font-size: 13px;
-            font-weight: 600;
-        }
+    .cyber-panel-caption {
+      font-size: 0.85rem;
+      color: #b0b8d0;
+      margin: 0 0 10px;
+    }
 
-        #dataTable td input {
-            background: transparent;
-            border: none;
-            color: #fff;
-            width: 100%;
-            padding: 4px;
-            text-align: center;
-            font-size: 13px;
-        }
+    .cyber-data-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
 
-        #dataTable td input:focus {
-            box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
-            background: rgba(0, 240, 255, 0.05);
-            border-radius: 4px;
-        }
+    .cyber-data-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
 
-        #dataTable .del-row {
-            background: transparent;
-            border: none;
-            color: #ff00a0;
-            cursor: pointer;
-            font-size: 14px;
-            padding: 2px 4px;
-            line-height: 1;
-        }
+    .cyber-data-row .cyber-input {
+      padding: 8px 10px;
+      font-size: 0.95rem;
+    }
 
-        #dataTable .del-row:hover {
-            background: rgba(255, 0, 160, 0.1);
-            border-radius: 4px;
-        }
+    .cyber-label-input {
+      flex: 2;
+    }
 
-        .empty-msg {
-            color: #888;
-            text-align: center;
-            padding: 40px;
-            font-size: 18px;
-        }
+    .cyber-value-input {
+      flex: 1;
+    }
 
-        @media (max-width: 900px) {
-            .main-layout {
-                flex-direction: column;
-            }
-            .sidebar {
-                width: 100%;
-                max-height: none;
-            }
-            .chart-container {
-                min-height: 400px;
-            }
-        }
+    .cyber-freq-class-input {
+      flex: 3;
+    }
 
-        @media (max-width: 600px) {
-            .container {
-                padding: 10px;
-            }
-            .sidebar {
-                padding: 12px;
-            }
-            .chart-container {
-                padding: 10px;
-                min-height: 300px;
-            }
-            button {
-                padding: 10px 14px;
-                font-size: 13px;
-            }
-        }
+    .cyber-freq-count-input {
+      flex: 1;
+    }
 
-        /* 霓虹闪烁动画 */
-        @keyframes neonPulse {
-            0%,
-            100% {
-                box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
-            }
-            50% {
-                box-shadow: 0 0 40px rgba(0, 240, 255, 0.7);
-            }
-        }
-        .chart-container {
-            animation: neonPulse 4s ease-in-out infinite;
-        }
-    </style>
+    /* ボタン */
+    .cyber-btn {
+      background: linear-gradient(135deg, #0e1428, #1a1f3a);
+      border: 1px solid #2a2f4f;
+      color: var(--cyber-neon-blue);
+      padding: 8px 16px;
+      border-radius: 24px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.15);
+    }
+
+    .cyber-btn:hover {
+      background: linear-gradient(135deg, #1a1f3a, #0e1428);
+      box-shadow: 0 0 18px rgba(0, 240, 255, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .cyber-btn-delete {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #241235;
+      color: var(--cyber-neon-pink);
+      border-color: #5a1a48;
+      flex-shrink: 0;
+    }
+
+    .cyber-btn-delete:hover {
+      background: #3a1a3e;
+      box-shadow: 0 0 14px #ff00aa;
+    }
+
+    .cyber-btn-add {
+      width: 100%;
+      background: transparent;
+      border-style: dashed;
+      border-color: var(--cyber-neon-blue);
+    }
+
+    .cyber-btn-download {
+      width: 100%;
+      background: linear-gradient(135deg, #00d0c0, #0080ff);
+      color: #05070f;
+      border: none;
+      font-weight: 700;
+      padding: 12px;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+      margin-top: 12px;
+    }
+
+    .cyber-btn-download:hover {
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.7);
+    }
+
+    /* レスポンシブ */
+    @media (max-width: 900px) {
+      .cyber-layout {
+        grid-template-columns: 1fr;
+      }
+      .cyber-section-title {
+        font-size: 1.6rem;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>グラフ作成ツール</h1>
-        </header>
-        <div class="main-layout">
-            <div class="sidebar">
-                <label class="label" for="chartType">📈 グラフタイプ</label>
-                <select id="chartType">
-                    <option value="bar">1. 棒グラフ</option>
-                    <option value="line">2. 折れ線グラフ</option>
-                    <option value="pie">3. 円グラフ</option>
-                    <option value="horizontalBar">4. 帯グラフ</option>
-                    <option value="histogram">5. ヒストグラム</option>
-                    <option value="scatter">6. 散布図</option>
-                    <option value="stackedBar">7. 積み上げ棒</option>
-                    <option value="radar">8. レーダー</option>
-                    <option value="bubble">9. バブル</option>
-                    <option value="boxplot">10. 箱ひげ図</option>
-                    <option value="heatmap">11. ヒートマップ</option>
-                    <option value="sankey">12. サンキー</option>
-                </select>
+  <section id="cyber-graph-generator" class="cyber-graph-generator">
 
-                <label class="label" for="chartTitle">🏷️ タイトル</label>
-                <input type="text" id="chartTitle" placeholder="グラフタイトル..." value="グラフタイトル">
+    <h2 class="cyber-section-title">📊 グラフ作成ツール</h2>
 
-                <div class="data-input">
-                    <h3>📊 データ入力</h3>
-                    <table id="dataTable"></table>
-                    <div class="btn-group">
-                        <button id="addRow">➕ 行追加</button>
-                    </div>
-                </div>
+    <div class="cyber-layout">
+      <!-- 左カラム -->
+      <div class="cyber-sidebar">
 
-                <button id="downloadBtn">💾 PNGダウンロード</button>
-            </div>
-            <div class="chart-container">
-                <canvas id="myChart"></canvas>
-            </div>
+        <div class="cyber-field">
+          <label for="cyber-chart-title" class="cyber-label">グラフタイトル</label>
+          <input type="text" id="cyber-chart-title" class="cyber-input cyber-chart-title-input"
+                 data-role="chart-title-input" value="新しいグラフ" placeholder="グラフのタイトルを入力">
         </div>
-    </div>
 
-    <script>
-        // ================== 状態（初期データは空） ==================
-        let chartInstance = null;
-        let state = {
-            chartType: 'bar',
-            title: 'グラフタイトル',
-            labels: [],
-            values: []
+        <div class="cyber-field">
+          <label for="cyber-chart-type" class="cyber-label">グラフの種類</label>
+          <select id="cyber-chart-type" class="cyber-select" data-role="chart-type">
+            <option value="bar">棒グラフ</option>
+            <option value="line">折れ線グラフ</option>
+            <option value="doughnut">円グラフ</option>
+            <option value="horizontalBar">帯グラフ（横向き積み上げ棒グラフ）</option>
+            <option value="histogram">ヒストグラム（柱状グラフ ※度数分布表と連動）</option>
+            <option value="scatter">散布図</option>
+            <option value="stackedBar">積み上げ棒グラフ</option>
+            <option value="radar">レーダーチャート</option>
+            <option value="bubble">バブルチャート</option>
+            <option value="boxplot">箱ひげ図</option>
+            <option value="heatmap">ヒートマップ</option>
+            <option value="sankey">サンキーダイアグラム</option>
+          </select>
+        </div>
+
+        <div class="cyber-field">
+          <span class="cyber-label">入力モード</span>
+          <div class="cyber-mode-switch" role="radiogroup" aria-label="入力モード">
+            <input type="radio" name="cyber-input-mode" id="cyber-mode-normal" value="normal"
+                   class="cyber-mode-radio" data-role="input-mode" checked>
+            <label for="cyber-mode-normal" class="cyber-mode-label">通常データ入力</label>
+
+            <input type="radio" name="cyber-input-mode" id="cyber-mode-freq" value="frequency"
+                   class="cyber-mode-radio" data-role="input-mode">
+            <label for="cyber-mode-freq" class="cyber-mode-label">度数分布表入力</label>
+          </div>
+        </div>
+
+        <!-- 通常データ入力パネル -->
+        <div id="cyber-normal-panel" class="cyber-data-panel cyber-mode-panel" data-mode="normal">
+          <p class="cyber-panel-caption">項目名（ラベル）と数値を入力してください。</p>
+          <div id="cyber-normal-list" class="cyber-data-list" data-role="data-list" data-list-type="normal">
+            <div class="cyber-data-row cyber-normal-row">
+              <input type="text" class="cyber-input cyber-label-input" data-role="item-label"
+                     placeholder="項目名（例：A社）" aria-label="項目名">
+              <input type="number" class="cyber-input cyber-value-input" data-role="item-value"
+                     placeholder="数値" step="any" aria-label="数値">
+              <button type="button" class="cyber-btn cyber-btn-delete" data-role="delete-row"
+                      aria-label="この行を削除">×</button>
+            </div>
+          </div>
+          <button type="button" class="cyber-btn cyber-btn-add" data-role="add-row"
+                  data-target="cyber-normal-list">＋ データを追加</button>
+        </div>
+
+        <!-- 度数分布表入力パネル -->
+        <div id="cyber-freq-panel" class="cyber-data-panel cyber-mode-panel" data-mode="frequency" hidden>
+          <p class="cyber-panel-caption">階級（区間・範囲）と度数を入力してください。<br>
+          ※ヒストグラム／累積度数折れ線グラフ用データとしてJavaScript側で利用できます。</p>
+          <div id="cyber-freq-list" class="cyber-data-list" data-role="data-list" data-list-type="frequency">
+            <div class="cyber-data-row cyber-freq-row">
+              <input type="text" class="cyber-input cyber-freq-class-input" data-role="freq-class"
+                     placeholder="例：0以上10未満" aria-label="階級（区間・範囲）">
+              <input type="number" class="cyber-input cyber-freq-count-input" data-role="freq-count"
+                     placeholder="度数" min="0" step="1" aria-label="度数">
+              <button type="button" class="cyber-btn cyber-btn-delete" data-role="delete-row"
+                      aria-label="この行を削除">×</button>
+            </div>
+          </div>
+          <button type="button" class="cyber-btn cyber-btn-add" data-role="add-row"
+                  data-target="cyber-freq-list">＋ 階級・度数を追加</button>
+        </div>
+
+        <div class="cyber-field cyver-download-area">
+          <button type="button" id="cyber-download-btn" class="cyber-btn cyber-btn-download"
+                  data-role="download-png">⬇ PNGダウンロード</button>
+        </div>
+
+      </div>
+
+      <!-- 右カラム -->
+      <div class="cyber-main">
+        <div class="cyber-canvas-wrap">
+          <canvas id="cyber-chart-canvas" class="cyber-canvas" role="img"
+                  aria-label="グラフ描画エリア"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    (function() {
+      'use strict';
+
+      // ===== DOM 参照 =====
+      const canvas = document.getElementById('cyber-chart-canvas');
+      const ctx = canvas.getContext('2d');
+      const chartTitleInput = document.querySelector('[data-role="chart-title-input"]');
+      const chartTypeSelect = document.querySelector('[data-role="chart-type"]');
+      const modeRadios = document.querySelectorAll('[data-role="input-mode"]');
+      const normalPanel = document.getElementById('cyber-normal-panel');
+      const freqPanel = document.getElementById('cyber-freq-panel');
+      const normalList = document.querySelector('[data-list-type="normal"]');
+      const freqList = document.querySelector('[data-list-type="frequency"]');
+      const downloadBtn = document.getElementById('cyber-download-btn');
+
+      // 現在のグラフインスタンス
+      let chart = null;
+
+      // ===== 初期設定 =====
+      // デフォルトグラフ（棒グラフ）
+      function createChart() {
+        if (chart) chart.destroy();
+        const data = gatherData();
+        chart = buildChart(data);
+      }
+
+      // ===== データ取得 =====
+      function gatherData() {
+        const mode = getInputMode();
+        if (mode === 'normal') {
+          return getNormalData();
+        } else {
+          return getFreqData();
+        }
+      }
+
+      function getInputMode() {
+        const checkedRadio = document.querySelector('input[name="cyber-input-mode"]:checked');
+        return checkedRadio ? checkedRadio.value : 'normal';
+      }
+
+      function getNormalData() {
+        const rows = normalList.querySelectorAll('.cyber-data-row');
+        const labels = [];
+        const values = [];
+        rows.forEach(row => {
+          const labelInput = row.querySelector('[data-role="item-label"]');
+          const valueInput = row.querySelector('[data-role="item-value"]');
+          const label = labelInput.value.trim();
+          const value = parseFloat(valueInput.value);
+          if (label !== '' && !isNaN(value)) {
+            labels.push(label);
+            values.push(value);
+          }
+        });
+        return { labels, values };
+      }
+
+      function getFreqData() {
+        const rows = freqList.querySelectorAll('.cyber-data-row');
+        const labels = [];
+        const values = [];
+        rows.forEach(row => {
+          const classInput = row.querySelector('[data-role="freq-class"]');
+          const countInput = row.querySelector('[data-role="freq-count"]');
+          const label = classInput.value.trim();
+          const value = parseInt(countInput.value, 10);
+          if (label !== '' && !isNaN(value)) {
+            labels.push(label);
+            values.push(value);
+          }
+        });
+        return { labels, values };
+      }
+
+      // ===== グラフ構築 =====
+      function buildChart(data) {
+        const type = chartTypeSelect.value;
+        const mode = getInputMode();
+        const labels = data.labels;
+        const values = data.values;
+        const title = chartTitleInput.value || '新しいグラフ';
+
+        // 基本オプション
+        const baseOptions = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+              display: true,
+              text: title,
+              color: '#00f0ff',
+              font: { size: 20, weight: 'bold' },
+              padding: { top: 8, bottom: 8 }
+            },
+            legend: {
+              labels: { color: '#e0e4ff' }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#b0b8d0' }, grid: { color: 'rgba(40, 50, 100, 0.5)' } },
+            y: { ticks: { color: '#b0b8d0' }, grid: { color: 'rgba(40, 50, 100, 0.5)' } }
+          }
         };
 
-        // ================== DOM element ==================
-        const chartTypeSelect = document.getElementById('chartType');
-        const chartTitleInput = document.getElementById('chartTitle');
-        const dataTable = document.getElementById('dataTable');
-        const addRowBtn = document.getElementById('addRow');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const canvas = document.getElementById('myChart');
+        // チャートタイプごとのデータセット生成
+        let config = {};
 
-        const neonColors = ['#00f0ff', '#ff00a0', '#00ff41', '#ffde00', '#ff6b35', '#9d00ff', '#00ffcc', '#ff3881', '#7fff00', '#ff9500', '#00aaff', '#ff2d55'];
+        switch (type) {
+          case 'bar':
+            config = {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: 'データ',
+                  data: values,
+                  backgroundColor: 'rgba(0, 240, 255, 0.7)',
+                  borderColor: '#00f0ff',
+                  borderWidth: 2,
+                  borderRadius: 4
+                }]
+              },
+              options: { ...baseOptions }
+            };
+            break;
 
-        // ================== テーブル描画 ==================
-        function renderTable() {
-            dataTable.innerHTML = '';
-            if (state.labels.length === 0) {
-                // 空状態表示
-                const trEmpty = document.createElement('tr');
-                const td = document.createElement('td');
-                td.colSpan = 3;
-                td.style.textAlign = 'center';
-                td.style.padding = '20px';
-                td.style.color = '#888';
-                td.textContent = 'データがありません。下の「行追加」を押してください。';
-                trEmpty.appendChild(td);
-                dataTable.appendChild(trEmpty);
-                return;
+          case 'line':
+            // 度数分布表モードなら累積度数折れ線にする
+            if (mode === 'frequency') {
+              const cumulative = values.reduce((acc, val, i) => {
+                acc.push((acc.length > 0 ? acc[i-1] : 0) + val);
+                return acc;
+              }, []);
+              config = {
+                type: 'line',
+                data: {
+                  labels: labels,
+                  datasets: [{
+                    label: '累積度数',
+                    data: cumulative,
+                    borderColor: '#ff00aa',
+                    backgroundColor: 'rgba(255, 0, 170, 0.2)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    fill: true,
+                    tension: 0.2
+                  }]
+                },
+                options: { ...baseOptions }
+              };
+            } else {
+              config = {
+                type: 'line',
+                data: {
+                  labels: labels,
+                  datasets: [{
+                    label: 'データ',
+                    data: values,
+                    borderColor: '#00ff9d',
+                    backgroundColor: 'rgba(0, 255, 157, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#00ff9d',
+                    tension: 0.3
+                  }]
+                },
+                options: { ...baseOptions }
+              };
             }
+            break;
 
-            // ヘッダー
-            const thead = document.createElement('thead');
-            const trHead = document.createElement('tr');
-            const th1 = document.createElement('th');
-            th1.textContent = 'ラベル';
-            const th2 = document.createElement('th');
-            th2.textContent = '値';
-            const th3 = document.createElement('th');
-            th3.textContent = '削除';
-            trHead.appendChild(th1);
-            trHead.appendChild(th2);
-            trHead.appendChild(th3);
-            thead.appendChild(trHead);
-            dataTable.appendChild(thead);
+          case 'doughnut':
+            config = {
+              type: 'doughnut',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: 'データ',
+                  data: values,
+                  backgroundColor: [
+                    '#ff00aa', '#00f0ff', '#9d00ff', '#00ff9d', '#ffcc00',
+                    '#ff6600', '#5533ff', '#ff3366', '#33ff99', '#aa66ff'
+                  ],
+                  borderColor: '#0b0d1a',
+                  borderWidth: 3
+                }]
+              },
+              options: { ...baseOptions, scales: undefined }
+            };
+            break;
 
-            // ボディ
-            const tbody = document.createElement('tbody');
-            state.labels.forEach((label, idx) => {
-                const tr = document.createElement('tr');
+          case 'horizontalBar':
+            config = {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: 'データ',
+                  data: values,
+                  backgroundColor: 'rgba(255, 0, 170, 0.7)',
+                  borderColor: '#ff00aa',
+                  borderWidth: 2
+                }]
+              },
+              options: {
+                ...baseOptions,
+                indexAxis: 'y'
+              }
+            };
+            break;
 
-                const tdLabel = document.createElement('td');
-                const inputLabel = document.createElement('input');
-                inputLabel.type = 'text';
-                inputLabel.value = label;
-                inputLabel.placeholder = '項目名';
-                inputLabel.addEventListener('input', () => {
-                    state.labels[idx] = inputLabel.value;
-                });
-                tdLabel.appendChild(inputLabel);
-                tr.appendChild(tdLabel);
-
-                const tdValue = document.createElement('td');
-                const inputValue = document.createElement('input');
-                inputValue.type = 'number';
-                inputValue.value = state.values[idx];
-                inputValue.placeholder = '0';
-                inputValue.addEventListener('input', () => {
-                    const v = parseFloat(inputValue.value);
-                    state.values[idx] = isNaN(v) ? 0 : v;
-                });
-                tdValue.appendChild(inputValue);
-                tr.appendChild(tdValue);
-
-                const tdDel = document.createElement('td');
-                const delBtn = document.createElement('button');
-                delBtn.textContent = '🗑️';
-                delBtn.className = 'del-row';
-                delBtn.addEventListener('click', () => {
-                    if (state.labels.length <= 1) {
-                        alert('少なくとも1つの行が必要です。');
-                        return;
-                    }
-                    state.labels.splice(idx, 1);
-                    state.values.splice(idx, 1);
-                    renderTable();
-                    renderChart();
-                });
-                tdDel.appendChild(delBtn);
-                tr.appendChild(tdDel);
-
-                tbody.appendChild(tr);
-            });
-            dataTable.appendChild(tbody);
-        }
-
-        // ================== Chart.js 汎用 ==================
-        function renderChartJS(type, data, options) {
-            if (chartInstance) {
-                chartInstance.destroy();
-                chartInstance = null;
-            }
-            canvas.width = canvas.parentElement.clientWidth - 40;
-            canvas.height = 600;
-            const ctx = canvas.getContext('2d');
-            chartInstance = new Chart(ctx, {
-                type: type,
-                data: data,
-                options: options || {
-                    responsive: true,
-                    plugins: {
-                        title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } }
-                    }
+          case 'histogram':
+            // 度数分布表のデータをそのまま棒グラフで表現（ヒストグラム）
+            config = {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: '度数',
+                  data: values,
+                  backgroundColor: 'rgba(0, 240, 255, 0.8)',
+                  borderColor: '#00f0ff',
+                  borderWidth: 1,
+                  barPercentage: 1.0,
+                  categoryPercentage: 1.0
+                }]
+              },
+              options: {
+                ...baseOptions,
+                scales: {
+                  ...baseOptions.scales,
+                  x: { ...baseOptions.scales.x, barPercentage: 1.0, categoryPercentage: 1.0 }
                 }
-            });
-        }
+              }
+            };
+            break;
 
-        function setupCanvas() {
-            if (chartInstance) {
-                chartInstance.destroy();
-                chartInstance = null;
-            }
-            canvas.width = canvas.parentElement.clientWidth - 40;
-            canvas.height = 600;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#0d0f14';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            return ctx;
-        }
+          case 'scatter':
+            // 正常データを散布図風に：値をxとyに分割
+            const scatterData = values.map((v, i) => ({ x: i + 1, y: v }));
+            config = {
+              type: 'scatter',
+              data: {
+                datasets: [{
+                  label: '散布図 (入力値)',
+                  data: scatterData,
+                  backgroundColor: '#ff00aa',
+                  borderColor: '#ff00aa',
+                  pointRadius: 6
+                }]
+              },
+              options: baseOptions
+            };
+            break;
 
-        // ================== 個別描画（箱ひげ・ヒートマップ・サンキー） ==================
-        function drawBoxPlot() {
-            const ctx = setupCanvas();
-            const W = canvas.width;
-            const H = canvas.height;
-            const values = state.values.filter(v => !isNaN(v));
-            if (values.length === 0) {
-                ctx.fillStyle = '#888';
-                ctx.font = '18px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('データがありません', W / 2, H / 2);
-                return;
-            }
+          case 'stackedBar':
+            // 正常データを積み上げ棒グラフ風に（単一系列のため1本の棒）
+            config = {
+              type: 'bar',
+              data: {
+                labels: labels.length ? labels : ['データ'],
+                datasets: [{
+                  label: '系列1',
+                  data: values.length ? values : [0],
+                  backgroundColor: '#00f0ff',
+                  borderColor: '#00f0ff'
+                }]
+              },
+              options: {
+                ...baseOptions,
+                scales: {
+                  ...baseOptions.scales,
+                  x: { ...baseOptions.scales.x, stacked: true },
+                  y: { ...baseOptions.scales.y, stacked: true }
+                }
+              }
+            };
+            break;
 
-            ctx.fillStyle = '#00f0ff';
-            ctx.font = 'bold 20px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(state.title, W / 2, 30);
+          case 'radar':
+            config = {
+              type: 'radar',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: 'データ',
+                  data: values,
+                  borderColor: '#00ff9d',
+                  backgroundColor: 'rgba(0, 255, 157, 0.2)',
+                  borderWidth: 2,
+                  pointBackgroundColor: '#00ff9d'
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  title: { display: true, text: title, color: '#00f0ff', font: { size: 20 } }
+                },
+                scales: {
+                  r: {
+                    grid: { color: 'rgba(255,255,255,0.2)' },
+                    ticks: { color: '#b0b8d0' },
+                    pointLabels: { color: '#e0e4ff' }
+                  }
+                }
+              }
+            };
+            break;
 
-            const sorted = [...values].sort((a, b) => a - b);
+          case 'bubble':
+            // バブルチャート（値に応じてバブルサイズ）
+            const bubbleData = values.map((v, i) => ({ x: i + 1, y: v, r: Math.max(5, Math.abs(v) % 20) })); 
+            config = {
+              type: 'bubble',
+              data: {
+                datasets: [{
+                  label: 'バブル',
+                  data: bubbleData,
+                  backgroundColor: 'rgba(255, 0, 170, 0.5)',
+                  borderColor: '#ff00aa',
+                  borderWidth: 2
+                }]
+              },
+              options: baseOptions
+            };
+            break;
+
+          case 'boxplot':
+            // 箱ひげ図（プラグイン）: 入力値から簡易的な箱ひげデータを生成
+            const sorted = values.slice().sort((a, b) => a - b);
+            if (sorted.length === 0) sorted.push(0);
+            const q1 = sorted[Math.floor(sorted.length * 0.25)];
+            const med = sorted[Math.floor(sorted.length * 0.5)];
+            const q3 = sorted[Math.floor(sorted.length * 0.75)];
             const min = sorted[0];
             const max = sorted[sorted.length - 1];
-            const percentile = (arr, p) => {
-                const idx = (arr.length - 1) * p;
-                const lo = Math.floor(idx);
-                const hi = Math.ceil(idx);
-                if (lo === hi) return arr[lo];
-                return arr[lo] * (hi - idx) + arr[hi] * (idx - lo);
+            const boxData = [[min, q1, med, q3, max]];
+            config = {
+              type: 'boxplot',
+              data: {
+                labels: ['データ'],
+                datasets: [{
+                  label: '箱ひげ図',
+                  data: boxData,
+                  backgroundColor: 'rgba(0, 240, 255, 0.4)',
+                  borderColor: '#00f0ff',
+                  borderWidth: 2
+                }]
+              },
+              options: baseOptions
             };
-            const q1 = percentile(sorted, 0.25);
-            const median = percentile(sorted, 0.5);
-            const q3 = percentile(sorted, 0.75);
+            break;
 
-            const yMin = min - (max - min) * 0.2 || min - 1;
-            const yMax = max + (max - min) * 0.2 || max + 1;
-            const x = W / 2;
-            const scaleY = (v) => H - 80 - ((v - yMin) / (yMax - yMin)) * (H - 160);
-
-            const boxW = 80;
-            ctx.fillStyle = 'rgba(0,240,255,0.2)';
-            ctx.strokeStyle = '#00f0ff';
-            ctx.lineWidth = 2;
-            ctx.fillRect(x - boxW / 2, scaleY(q3), boxW, scaleY(q1) - scaleY(q3));
-            ctx.strokeRect(x - boxW / 2, scaleY(q3), boxW, scaleY(q1) - scaleY(q3));
-            ctx.strokeStyle = '#ff00a0';
-            ctx.beginPath();
-            ctx.moveTo(x - boxW / 2, scaleY(median));
-            ctx.lineTo(x + boxW / 2, scaleY(median));
-            ctx.stroke();
-            ctx.strokeStyle = '#00ff41';
-            ctx.beginPath();
-            ctx.moveTo(x, scaleY(q3));
-            ctx.lineTo(x, scaleY(max));
-            ctx.moveTo(x - boxW / 4, scaleY(max));
-            ctx.lineTo(x + boxW / 4, scaleY(max));
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, scaleY(q1));
-            ctx.lineTo(x, scaleY(min));
-            ctx.moveTo(x - boxW / 4, scaleY(min));
-            ctx.lineTo(x + boxW / 4, scaleY(min));
-            ctx.stroke();
-
-            const iqr = q3 - q1;
-            sorted.forEach(v => {
-                if (v < q1 - 1.5 * iqr || v > q3 + 1.5 * iqr) {
-                    ctx.beginPath();
-                    ctx.arc(x, scaleY(v), 4, 0, Math.PI * 2);
-                    ctx.fillStyle = '#ff6b35';
-                    ctx.fill();
-                }
+          case 'heatmap':
+            // ヒートマップ（matrixプラグイン）：行列風データを入力値から生成
+            const heatData = [];
+            labels.forEach((label, i) => {
+              if (values[i] !== undefined) {
+                heatData.push({ x: i, y: 0, v: values[i] });
+              }
             });
-
-            ctx.fillStyle = '#aaa';
-            ctx.font = '12px sans-serif';
-            ctx.textAlign = 'left';
-            ctx.fillText('Min:', 20, scaleY(min) + 4);
-            ctx.fillText(String(min), 60, scaleY(min) + 4);
-            ctx.fillText('Q1:', 20, scaleY(q1) + 4);
-            ctx.fillText(String(q1), 60, scaleY(q1) + 4);
-            ctx.fillText('中央:', 20, scaleY(median) + 4);
-            ctx.fillText(String(median), 60, scaleY(median) + 4);
-            ctx.fillText('Q3:', 20, scaleY(q3) + 4);
-            ctx.fillText(String(q3), 60, scaleY(q3) + 4);
-            ctx.fillText('Max:', 20, scaleY(max) + 4);
-            ctx.fillText(String(max), 60, scaleY(max) + 4);
-        }
-
-        function drawHeatmap() {
-            const ctx = setupCanvas();
-            const W = canvas.width;
-            const H = canvas.height;
-            ctx.fillStyle = '#00f0ff';
-            ctx.font = 'bold 20px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(state.title, W / 2, 30);
-
-            const rows = state.labels.length;
-            if (rows === 0) {
-                ctx.fillStyle = '#888';
-                ctx.font = '18px sans-serif';
-                ctx.fillText('データがありません', W / 2, H / 2);
-                return;
-            }
-            const values = state.values.map(v => isNaN(v) ? 0 : v);
-            const maxVal = Math.max(...values);
-            const minVal = Math.min(...values);
-            const range = maxVal - minVal || 1;
-
-            const margin = { top: 50, left: 120, right: 40, bottom: 50 };
-            const gridW = W - margin.left - margin.right;
-            const cellH = 40;
-            const cellW = gridW / rows;
-
-            ctx.fillStyle = '#eee';
-            ctx.font = '13px sans-serif';
-            ctx.textAlign = 'right';
-            for (let i = 0; i < rows; i++) {
-                ctx.fillText(state.labels[i], margin.left - 10, margin.top + i * cellH + cellH / 2 + 4);
-            }
-
-            for (let i = 0; i < rows; i++) {
-                const t = (values[i] - minVal) / range;
-                const r = Math.min(255, Math.floor(t * 255));
-                const b = Math.min(255, Math.floor((1 - t) * 255));
-                const g = Math.min(255, Math.floor(100 * t));
-                ctx.fillStyle = `rgb(${r},${g},${b})`;
-                ctx.fillRect(margin.left + i * cellW, margin.top, cellW - 2, cellH - 2);
-                ctx.fillStyle = t > 0.6 ? '#000' : '#fff';
-                ctx.textAlign = 'center';
-                ctx.font = '12px sans-serif';
-                ctx.fillText(String(values[i]), margin.left + i * cellW + cellW / 2, margin.top + cellH / 2 + 4);
-            }
-            ctx.strokeStyle = '#0d0f14';
-            ctx.lineWidth = 1;
-            for (let i = 0; i <= rows; i++) {
-                ctx.beginPath();
-                ctx.moveTo(margin.left + i * cellW, margin.top);
-                ctx.lineTo(margin.left + i * cellW, margin.top + cellH);
-                ctx.stroke();
-            }
-        }
-
-        function drawSankey() {
-            const ctx = setupCanvas();
-            const W = canvas.width;
-            const H = canvas.height;
-            ctx.fillStyle = '#00f0ff';
-            ctx.font = 'bold 20px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(state.title, W / 2, 30);
-
-            const n = state.labels.length;
-            if (n === 0) {
-                ctx.fillStyle = '#888';
-                ctx.font = '18px sans-serif';
-                ctx.fillText('データがありません', W / 2, H / 2);
-                return;
-            }
-            const values = state.values.map(v => isNaN(v) ? 0 : v);
-            const maxV = Math.max(...values, 1);
-            const leftX = 60;
-            const rightX = W - 20;
-            const topY = 60;
-            const botY = H - 60;
-            const yPos = (i) => topY + ((i + 0.5) * (botY - topY) / n);
-
-            ctx.fillStyle = '#fff';
-            ctx.font = '13px sans-serif';
-            ctx.textAlign = 'right';
-            state.labels.forEach((label, i) => {
-                ctx.fillText(label, leftX - 20, yPos(i) + 4);
-            });
-            ctx.fillStyle = '#ff00a0';
-            ctx.textAlign = 'left';
-            ctx.font = 'bold 13px sans-serif';
-            values.forEach((v, i) => {
-                ctx.fillText(String(v), rightX + 10, yPos(i) + 4);
-            });
-            const maxW = Math.min(W/4, 60);
-            values.forEach((v, i) => {
-                if (v === 0) return;
-                const lineWidth = Math.max(1, (Math.abs(v) / maxV) * maxW);
-                const y = yPos(i);
-                const grad = ctx.createLinearGradient(leftX, y, rightX, y);
-                grad.addColorStop(0, '#00f0ff');
-                grad.addColorStop(1, '#ff00a0');
-                ctx.strokeStyle = grad;
-                ctx.lineWidth = lineWidth;
-                ctx.beginPath();
-                ctx.moveTo(leftX, y);
-                ctx.bezierCurveTo(leftX + 100, y, rightX - 100, y, rightX, y);
-                ctx.stroke();
-            });
-        }
-
-        // ================== メイン描画 ==================
-        function renderChart() {
-            const type = state.chartType;
-
-            // カスタム描画
-            if (type === 'boxplot') return drawBoxPlot();
-            if (type === 'heatmap') return drawHeatmap();
-            if (type === 'sankey') return drawSankey();
-
-            // データが空なら空表示
-            if (state.labels.length === 0) {
-                if (chartInstance) {
-                    chartInstance.destroy();
-                    chartInstance = null;
+            config = {
+              type: 'matrix',
+              data: {
+                datasets: [{
+                  label: 'ヒートマップ',
+                  data: heatData,
+                  backgroundColor(context) {
+                    const v = context.dataset.data[context.dataIndex].v;
+                    const alpha = Math.min(1, Math.abs(v) / 100);
+                    return v >= 0 ? `rgba(0, 240, 255, ${alpha})` : `rgba(255, 0, 170, ${alpha})`;
+                  },
+                  borderWidth: 1,
+                  borderColor: '#0b0d1a',
+                  width: 60,
+                  height: 60
+                }]
+              },
+              options: {
+                ...baseOptions,
+                scales: {
+                  x: { ticks: { display: false }, grid: { display: false } },
+                  y: { ticks: { display: false }, grid: { display: false } }
                 }
-                const ctx = setupCanvas();
-                ctx.fillStyle = '#888';
-                ctx.font = '18px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('データを入力してください', canvas.width / 2, canvas.height / 2);
-                return;
-            }
-
-            const labels = [...state.labels];
-            const values = [...state.values];
-
-            if (type === 'histogram') {
-                const cleanValues = values.filter(v => !isNaN(v));
-                if (cleanValues.length === 0) {
-                    renderChartJS('bar', { labels: ['データなし'], datasets: [{ data: [0] }] });
-                    return;
-                }
-                const binCount = Math.min(8, Math.max(4, Math.round(Math.sqrt(cleanValues.length))));
-                const min = Math.min(...cleanValues);
-                const max = Math.max(...cleanValues);
-                if (min === max) {
-                    renderChartJS('bar', { labels: [String(min)], datasets: [{ data: [cleanValues.length] }] }, {
-                        responsive: true,
-                        plugins: { title: { display: true, text: state.title, color: '#00f0ff' } }
-                    });
-                    return;
-                }
-                const binSize = (max - min) / binCount;
-                const counts = new Array(binCount).fill(0);
-                cleanValues.forEach(v => {
-                    let idx = Math.floor((v - min) / binSize);
-                    if (idx === binCount) idx--;
-                    counts[idx]++;
-                });
-                const binLabels = [];
-                for (let i = 0; i < binCount; i++) {
-                    binLabels.push((min + i * binSize).toFixed(1) + '〜');
-                }
-                renderChartJS('bar', {
-                    labels: binLabels,
-                    datasets: [{
-                        label: '頻度',
-                        data: counts,
-                        backgroundColor: neonColors[2],
-                        borderColor: neonColors[2],
-                        borderWidth: 1
-                    }]
-                }, {
-                    responsive: true,
-                    plugins: { title: { display: true, text: state.title, color: '#00f0ff' } },
-                    scales: { y: { beginAtZero: true } }
-                });
-                return;
-            }
-
-            let data, options = {
-                responsive: true,
-                plugins: { title: { display: true, text: state.title, color: '#00f0ff', font: { size: 20 } } }
+              }
             };
+            break;
 
-            switch (type) {
-                case 'bar':
-                    data = {
-                        labels: labels,
-                        datasets: [{
-                            label: '値',
-                            data: values,
-                            backgroundColor: neonColors[0],
-                            borderColor: neonColors[0],
-                            borderWidth: 1,
-                            borderRadius: 6
-                        }]
-                    };
-                    break;
-                case 'line':
-                    data = {
-                        labels: labels,
-                        datasets: [{
-                            label: '値',
-                            data: values,
-                            borderColor: neonColors[0],
-                            backgroundColor: 'transparent',
-                            tension: 0.4,
-                            pointBackgroundColor: neonColors[0],
-                            borderWidth: 2
-                        }]
-                    };
-                    break;
-                case 'pie':
-                    data = {
-                        labels: labels,
-                        datasets: [{
-                            data: values,
-                            backgroundColor: neonColors.slice(0, labels.length),
-                            borderColor: '#0d0f14',
-                            borderWidth: 2
-                        }]
-                    };
-                    break;
-                case 'horizontalBar':
-                    data = {
-                        labels: labels,
-                        datasets: [{
-                            label: '値',
-                            data: values,
-                            backgroundColor: neonColors[0],
-                            borderColor: neonColors[0],
-                            borderWidth: 1
-                        }]
-                    };
-                    options.indexAxis = 'y';
-                    options.scales = { x: { beginAtZero: true } };
-                    break;
-                case 'scatter':
-                    data = {
-                        datasets: [{
-                            label: '値',
-                            data: values.map((v, i) => ({ x: i + 1, y: v })),
-                            backgroundColor: neonColors[0],
-                            pointRadius: 6,
-                            pointBackgroundColor: neonColors[0]
-                        }]
-                    };
-                    options.scales = { y: { beginAtZero: true }, x: { title: { display: true, text: 'index' } } };
-                    break;
-                case 'stackedBar':
-                    data = {
-                        labels: labels,
-                        datasets: [{
-                            label: '値',
-                            data: values,
-                            backgroundColor: neonColors[0],
-                            borderColor: neonColors[0]
-                        }]
-                    };
-                    options.scales = { x: { stacked: true }, y: { stacked: true } };
-                    break;
-                case 'radar':
-                    data = {
-                        labels: labels,
-                        datasets: [{
-                            label: '値',
-                            data: values,
-                            borderColor: neonColors[0],
-                            backgroundColor: neonColors[0] + '55',
-                            pointBackgroundColor: neonColors[0],
-                            pointRadius: 4
-                        }]
-                    };
-                    options.scales = { r: { beginAtZero: true } };
-                    break;
-                case 'bubble':
-                    data = {
-                        datasets: [{
-                            label: '値',
-                            data: values.map((v, i) => ({ x: i + 1, y: v, r: Math.max(4, Math.abs(v) / 2) })),
-                            backgroundColor: 'rgba(255, 0, 160, 0.3)',
-                            borderColor: '#ff00a0',
-                            borderWidth: 2
-                        }]
-                    };
-                    options.scales = { y: { beginAtZero: true }, x: { title: { display: true, text: 'index' } } };
-                    break;
-                default:
-                    data = { labels: [], datasets: [] };
-            }
-            renderChartJS(type, data, options);
+          case 'sankey':
+            // サンキーダイアグラム：入力データをサンキー風のフローに変換
+            const nodes = [];
+            const edges = [];
+            labels.forEach((label, i) => {
+              nodes.push({ id: label.length ? label : `node${i}` });
+              if (i < 2 && values[i] !== undefined) {
+                // フローのための擬似エッジ
+                edges.push({
+                  from: labels[0] || 'root',
+                  to: labels[i] || `node${i}`,
+                  flow: values[i]
+                });
+              }
+            });
+            // 最低限のサンキーデータ
+            const sankeyData = {
+              nodes: nodes.length ? nodes : [{ id: 'A' }, { id: 'B' }],
+              edges: edges.length ? edges : [{ from: 'A', to: 'B', flow: 10 }]
+            };
+            config = {
+              type: 'sankey',
+              data: {
+                datasets: [{
+                  label: 'サンキー',
+                  data: sankeyData,
+                  colorFrom: '#00f0ff',
+                  colorTo: '#ff00aa',
+                  colorMode: 'gradient'
+                }]
+              },
+              options: baseOptions
+            };
+            break;
+
+          default:
+            config = {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: 'データ',
+                  data: values,
+                  backgroundColor: 'rgba(0, 240, 255, 0.7)'
+                }]
+              },
+              options: baseOptions
+            };
         }
 
-        // ================== タイトル更新 ==================
-        function updateTitle() {
-            state.title = chartTitleInput.value;
-            if (chartInstance) {
-                chartInstance.options.plugins.title.text = state.title;
-                chartInstance.update();
-            } else if (['boxplot', 'heatmap', 'sankey'].includes(state.chartType)) {
-                renderChart();
-            }
+        // Chart.js で描画
+        try {
+          return new Chart(ctx, config);
+        } catch (e) {
+          console.error('グラフ描画エラー:', e);
+          // エラー時は棒グラフにフォールバック
+          const fallbackConfig = {
+            type: 'bar',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'エラー（データを確認）',
+                data: values,
+                backgroundColor: 'rgba(255,0,0,0.5)'
+              }]
+            },
+            options: baseOptions
+          };
+          return new Chart(ctx, fallbackConfig);
         }
+      }
 
-        // ================== ダウンロード ==================
-        function downloadPNG() {
-            const fileName = state.title.replace(/[\\/:*?"<>|]/g, '_') || 'chart';
-            const link = document.createElement('a');
-            link.download = fileName + '.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+      // ===== モード切り替え =====
+      function switchMode(mode) {
+        if (mode === 'normal') {
+          normalPanel.hidden = false;
+          freqPanel.hidden = true;
+        } else {
+          normalPanel.hidden = true;
+          freqPanel.hidden = false;
         }
+        updateChart();
+      }
 
-        // ================== イベント ==================
-        chartTypeSelect.addEventListener('change', () => {
-            state.chartType = chartTypeSelect.value;
-            renderChart();
+      // ===== 行追加・削除 =====
+      function addRow(targetListId) {
+        const list = document.getElementById(targetListId);
+        const isFreq = list.dataset.listType === 'frequency';
+        const row = document.createElement('div');
+        row.className = 'cyber-data-row' + (isFreq ? ' cyber-freq-row' : ' cyber-normal-row');
+
+        if (isFreq) {
+          row.innerHTML = `
+            <input type="text" class="cyber-input cyber-freq-class-input" data-role="freq-class"
+                   placeholder="例：0以上10未満" aria-label="階級（区間・範囲）">
+            <input type="number" class="cyber-input cyber-freq-count-input" data-role="freq-count"
+                   placeholder="度数" min="0" step="1" aria-label="度数">
+            <button type="button" class="cyber-btn cyber-btn-delete" data-role="delete-row"
+                    aria-label="この行を削除">×</button>
+          `;
+        } else {
+          row.innerHTML = `
+            <input type="text" class="cyber-input cyber-label-input" data-role="item-label"
+                   placeholder="項目名（例：A社）" aria-label="項目名">
+            <input type="number" class="cyber-input cyber-value-input" data-role="item-value"
+                   placeholder="数値" step="any" aria-label="数値">
+            <button type="button" class="cyber-btn cyber-btn-delete" data-role="delete-row"
+                    aria-label="この行を削除">×</button>
+          `;
+        }
+        list.appendChild(row);
+        attachRowEvents(row);
+      }
+
+      function deleteRow(row) {
+        const list = row.parentNode;
+        // 最低1行は残す（初期行の削除防止）
+        if (list.querySelectorAll('.cyber-data-row').length > 1) {
+          row.remove();
+          updateChart();
+        } else {
+          // 1行だけなら入力をクリア
+          row.querySelectorAll('input').forEach(input => input.value = '');
+        }
+      }
+
+      function attachRowEvents(row) {
+        const deleteBtn = row.querySelector('[data-role="delete-row"]');
+        if (deleteBtn) {
+          deleteBtn.addEventListener('click', () => deleteRow(row));
+        }
+        row.querySelectorAll('input').forEach(input => {
+          input.addEventListener('input', updateChart);
+          input.addEventListener('change', updateChart);
+        });
+      }
+
+      // ===== グラフ更新 =====
+      function updateChart() {
+        if (chart) chart.destroy();
+        const data = gatherData();
+        chart = buildChart(data);
+      }
+
+      // ===== ダウンロード =====
+      function downloadPNG() {
+        const title = chartTitleInput.value || 'グラフ';
+        const link = document.createElement('a');
+        link.download = title + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }
+
+      // ===== イベントリスナー設定 =====
+      function init() {
+        // モード切り替え
+        modeRadios.forEach(radio => {
+          radio.addEventListener('change', (e) => {
+            switchMode(e.target.value);
+          });
         });
 
-        chartTitleInput.addEventListener('input', updateTitle);
-
-        addRowBtn.addEventListener('click', () => {
-            state.labels.push('');
-            state.values.push(0);
-            renderTable();
-            renderChart();
+        // 追加ボタン
+        document.querySelectorAll('[data-role="add-row"]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const targetId = e.target.dataset.target;
+            addRow(targetId);
+          });
         });
 
+        // 初期行にイベント付与
+        document.querySelectorAll('.cyber-data-row').forEach(row => attachRowEvents(row));
+
+        // グラフタイトル変更
+        chartTitleInput.addEventListener('input', updateChart);
+
+        // グラフ種類変更
+        chartTypeSelect.addEventListener('change', updateChart);
+
+        // ダウンロードボタン
         downloadBtn.addEventListener('click', downloadPNG);
 
-        window.addEventListener('resize', () => {
-            if (['boxplot', 'heatmap', 'sankey'].includes(state.chartType)) {
-                renderChart();
-            } else if (chartInstance) {
-                chartInstance.resize();
-            }
-        });
+        // 初期描画
+        switchMode('normal');
+      }
 
-        // ================== 初期化 ==================
-        renderTable();
-        renderChart();
-    </script>
+      // 実行
+      init();
+
+    })();
+  </script>
 </body>
 </html>
