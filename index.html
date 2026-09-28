@@ -3,331 +3,417 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>グラフ作成ツール</title>
+  <title>グラフ作成サイト</title>
 
-  <!-- ファビコン（📊 絵文字をSVGで表示） -->
-  <link rel="icon" sizes="any" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E">
+  <!-- ファビコン（絵文字SVG） -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E">
 
-  <!-- Chart.js　本体 -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-  <!-- 追加プラグイン：箱ひげ図 -->
-  <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot@4.2.1/dist/chartjs-chart-boxplot.min.js"></script>
-  <!-- 追加プラグイン：ヒートマップ（matrix） -->
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js"></script>
-  <!-- 追加プラグイン：サンキーダイアグラム -->
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- 箱ひげ図プラグイン -->
+  <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot@4.2.0/dist/chartjs-chart-boxplot.min.js"></script>
+  <!-- ヒートマップ（マトリックス）プラグイン -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.1.0/dist/chartjs-chart-matrix.min.js"></script>
+  <!-- サンキーダイアグラム プラグイン -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-sankey@0.12.0/dist/chartjs-chart-sankey.min.js"></script>
 
   <style>
-    /* ===== リセットと基本スタイル ===== */
+    /* ===== cybertpunkネオン風ダークテーマ ===== */
     * {
       box-sizing: border-box;
     }
 
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0a0e17;
+      color: #e0e5ff;
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      overflow: hidden;
+    }
+
+    /* 全体をフルスクリーンに固定 */
     .cyber-graph-generator {
-      --cyber-bg: #0b0d1a;
-      --cyber-neon-blue: #00f0ff;
-      --cyber-neon-pink: #ff00aa;
-      --cyber-neon-purple: #9d00ff;
-      --cyber-neon-green: #00ff9d;
-      --cyber-text: #e0e4ff;
-      --cyber-panel-bg: rgba(20, 24, 45, 0.85);
-      --cyber-border: #2a2f4f;
-
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: radial-gradient(circle at 20% 30%, #181c34, var(--cyber-bg));
-      color: var(--cyber-text);
-      padding: 2rem 1.5rem;
-      border-radius: 28px;
-      box-shadow: 0 0 40px rgba(0, 240, 255, 0.3), 0 0 20px rgba(255, 0, 170, 0.2);
-      max-width: 1500px;
-      margin: 2rem auto;
-      border: 1px solid var(--cyber-border);
-      position: relative;
-      z-index: 1;
+      width: 100vw;
+      height: 100vh;
+      background: #0a0e17;
+      color: #e0e5ff;
+      overflow: hidden;
     }
 
-    .cyber-graph-generator::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(120deg, rgba(255, 0, 170, 0.12), rgba(0, 240, 255, 0.05));
-      border-radius: inherit;
-      pointer-events: none;
-      z-index: -1;
-    }
-
-    .cyber-section-title {
-      font-size: 2rem;
-      font-weight: 700;
-      text-shadow: 0 0 12px var(--cyber-neon-blue), 0 0 24px var(--cyber-neon-pink);
-      margin: 0 0 1.5rem;
-      letter-spacing: 0.1em;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    /* レイアウト（左右2カラム） */
     .cyber-layout {
-      display: grid;
-      grid-template-columns: minmax(320px, 1fr) 2fr;
-      gap: 24px;
-    }
-
-    .cyber-sidebar {
-      background: var(--cyber-panel-bg);
-      border-radius: 18px;
-      padding: 1.5rem;
-      border: 1px solid var(--cyber-border);
-      backdrop-filter: blur(6px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-    }
-
-    .cyber-main {
-      background: var(--cyber-panel-bg);
-      border-radius: 18px;
-      padding: 1.5rem;
-      border: 1px solid var(--cyber-border);
-      backdrop-filter: blur(6px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
       display: flex;
-      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      margin: 0 auto;
     }
 
-    .cyber-canvas-wrap {
-      flex: 1;
-      background: #05070f;
-      border-radius: 14px;
-      padding: 12px;
-      border: 1px solid #1e2340;
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
-      position: relative;
-      min-height: 420px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    /* ===== 左パネル ===== */
+    .cyber-control-panel {
+      width: 400px;
+      background: rgba(10, 15, 30, 0.92);
+      border-right: 2px solid #00f0ff;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+      padding: 20px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      z-index: 2;
+      backdrop-filter: blur(4px);
     }
 
-    .cyber-canvas {
-      width: 100% !important;
-      height: 100% !important;
-      max-height: 65vh;
+    .cyber-panel-title {
+      font-size: 1.6rem;
+      margin: 0 0 16px 0;
+      background: linear-gradient(90deg, #00f0ff, #ff00a0);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: 1px;
+      text-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
     }
 
-    /* フォーム共通 */
-    .cyber-field {
-      margin-bottom: 1.25rem;
+    .cyber-field-group {
+      margin-bottom: 18px;
     }
 
     .cyber-label {
       display: block;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+      color: #00f0ff;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 8px;
-      color: var(--cyber-neon-blue);
-      text-shadow: 0 0 6px var(--cyber-neon-blue);
+      letter-spacing: 1.5px;
     }
 
     .cyber-input,
     .cyber-select {
       width: 100%;
       padding: 10px 12px;
-      background: #11142a;
-      border: 1px solid var(--cyber-border);
-      border-radius: 10px;
-      color: var(--cyber-text);
+      background: #141a2e;
+      border: 1px solid #2a3a55;
+      color: #e0e5ff;
+      border-radius: 8px;
       font-size: 1rem;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: all 0.2s ease;
     }
 
     .cyber-input:focus,
     .cyber-select:focus {
       outline: none;
-      border-color: var(--cyber-neon-blue);
-      box-shadow: 0 0 14px rgba(0, 240, 255, 0.3);
+      border-color: #ff00a0;
+      box-shadow: 0 0 12px rgba(255, 0, 160, 0.3);
     }
 
-    .cyber-select option {
-      background: #11142a;
-      color: #e0e4ff;
+    .cyber-input::placeholder {
+      color: #6b7f9c;
     }
 
-    /* 入力モード切り替え */
+    /* モード切替ラジオ */
     .cyber-mode-switch {
       display: flex;
-      gap: 6px;
-      background: #0c0f1e;
-      padding: 6px;
-      border-radius: 24px;
-      border: 1px solid var(--cyber-border);
-    }
-
-    .cyber-mode-radio {
-      display: none;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #11182a;
+      border-radius: 30px;
+      border: 1px solid #00f0ff;
     }
 
     .cyber-mode-label {
       flex: 1;
-      text-align: center;
-      padding: 8px 12px;
-      border-radius: 20px;
-      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 10px;
+      border-radius: 30px;
+      background: transparent;
       cursor: pointer;
-      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-      border: 1px solid transparent;
+      transition: all 0.2s;
     }
 
-    .cyber-mode-radio:checked + .cyber-mode-label {
-      background: linear-gradient(135deg, var(--cyber-neon-blue), var(--cyber-neon-purple));
-      color: #05070f;
-      font-weight: 600;
-      box-shadow: 0 0 16px rgba(0, 240, 255, 0.6);
-      border-color: var(--cyber-neon-blue);
+    .cyber-mode-label input[type="radio"] {
+      display: none;
     }
 
-    /* データパネル */
-    .cyber-data-panel {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px dashed #2a2f4f;
+    .cyber-mode-text {
+      color: #8fa3c8;
+      font-weight: 500;
+      font-size: 0.9rem;
     }
 
-    .cyber-panel-caption {
-      font-size: 0.85rem;
-      color: #b0b8d0;
-      margin: 0 0 10px;
+    .cyber-mode-label input:checked + .cyber-mode-text {
+      color: #fff;
+      text-shadow: 0 0 8px #00f0ff;
     }
 
-    .cyber-data-list {
+    .cyber-mode-label:has(input:checked) {
+      background: linear-gradient(135deg, #00f0ff30, #ff00a030);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    }
+
+    /* セクション見出し */
+    .cyber-section-header {
+      margin: 20px 0 10px;
+      border-bottom: 1px solid #2a3a55;
+      padding-bottom: 6px;
+    }
+
+    .cyber-section-title {
+      font-size: 0.9rem;
+      color: #ff00a0;
+      letter-spacing: 1px;
+    }
+
+    /* データ行 */
+    .cyber-data-list,
+    .cyber-histogram-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
       margin-bottom: 12px;
     }
 
-    .cyber-data-row {
+    .cyber-data-row,
+    .cyber-histogram-row {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       align-items: center;
     }
 
-    .cyber-data-row .cyber-input {
-      padding: 8px 10px;
-      font-size: 0.95rem;
-    }
-
-    .cyber-label-input {
-      flex: 2;
-    }
-
-    .cyber-value-input {
+    .cyber-data-row .cyber-input,
+    .cyber-histogram-row .cyber-input {
       flex: 1;
     }
 
-    .cyber-freq-class-input {
-      flex: 3;
-    }
-
-    .cyber-freq-count-input {
-      flex: 1;
-    }
-
-    /* ボタン */
-    .cyber-btn {
-      background: linear-gradient(135deg, #0e1428, #1a1f3a);
-      border: 1px solid #2a2f4f;
-      color: var(--cyber-neon-blue);
-      padding: 8px 16px;
-      border-radius: 24px;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 0 8px rgba(0, 240, 255, 0.15);
-    }
-
-    .cyber-btn:hover {
-      background: linear-gradient(135deg, #1a1f3a, #0e1428);
-      box-shadow: 0 0 18px rgba(0, 240, 255, 0.5);
-      transform: translateY(-1px);
-    }
-
-    .cyber-btn-delete {
+    .cyber-remove-row {
+      background: transparent;
+      border: 1px solid #ff007a;
+      color: #ff007a;
+      border-radius: 8px;
       width: 36px;
       height: 36px;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      background: #241235;
-      color: var(--cyber-neon-pink);
-      border-color: #5a1a48;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.2s;
       flex-shrink: 0;
     }
 
-    .cyber-btn-delete:hover {
-      background: #3a1a3e;
-      box-shadow: 0 0 14px #ff00aa;
+    .cyber-remove-row:hover {
+      background: #ff007a;
+      color: #fff;
+      box-shadow: 0 0 12px #ff007a;
     }
 
-    .cyber-btn-add {
-      width: 100%;
+    .cyber-add-row-btn,
+    .cyber-sort-btn,
+    .cyber-download-btn {
       background: transparent;
-      border-style: dashed;
-      border-color: var(--cyber-neon-blue);
-    }
-
-    .cyber-btn-download {
-      width: 100%;
-      background: linear-gradient(135deg, #00d0c0, #0080ff);
-      color: #05070f;
-      border: none;
-      font-weight: 700;
-      padding: 12px;
+      border: 1px solid #00f0ff;
+      color: #00f0ff;
+      padding: 10px 18px;
       border-radius: 30px;
-      font-size: 1.1rem;
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
-      margin-top: 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.5px;
     }
 
-    .cyber-btn-download:hover {
-      box-shadow: 0 0 30px rgba(0, 240, 255, 0.7);
+    .cyber-add-row-btn:hover,
+    .cyber-sort-btn:hover,
+    .cyber-download-btn:hover {
+      background: #00f0ff;
+      color: #0a0e17;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.7);
     }
 
-    /* レスポンシブ */
-    @media (max-width: 900px) {
+    .cyber-histogram-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ヒストグラム用ラベル（下限・度数） */
+    .cyber-bin-label {
+      font-size: 0.75rem;
+      color: #8fa3c8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    /* 統計結果テーブル */
+    .cyber-stats-section {
+      margin-top: 18px;
+    }
+
+    .cyber-stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+    }
+
+    .cyber-stats-table th,
+    .cyber-stats-table td {
+      padding: 8px 6px;
+      text-align: center;
+      border: 1px solid #2a3a55;
+      color: #c0d1f5;
+    }
+
+    .cyber-stats-table th {
+      background: #141a2e;
+      color: #00f0ff;
+      font-weight: 600;
+    }
+
+    .cyber-stats-table td {
+      background: #0d1425;
+    }
+
+    /* ダウンロードボタン */
+    .cyber-download-section {
+      margin-top: 24px;
+      text-align: center;
+    }
+
+    /* ===== 右側モニター ===== */
+    .cyber-monitor {
+      flex: 1;
+      background: #0a0e17;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cyber-chart-header {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .cyber-chart-title-display {
+      font-size: 1.5rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #00f0ff, #ff00a0);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+      letter-spacing: 1px;
+    }
+
+    .cyber-chart-wrapper {
+      flex: 1;
+      background: #0a0e17;
+      border: 1px solid #1e2c45;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
+      padding: 16px;
+      min-height: 0;
+    }
+
+    .cyber-chart-wrapper canvas {
+      width: 100% !important;
+      height: 100% !important;
+      max-height: 100%;
+    }
+
+    /* ===== レスポンシブ（スマホ） ===== */
+    @media (max-width: 700px) {
+      body {
+        overflow: auto;
+      }
+
+      .cyber-graph-generator {
+        height: auto;
+        min-height: 100vh;
+      }
+
       .cyber-layout {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
       }
-      .cyber-section-title {
-        font-size: 1.6rem;
+
+      .cyber-control-panel {
+        width: 100%;
+        max-height: 45vh;
+        overflow-y: auto;
+        border-right: none;
+        border-bottom: 2px solid #ff00a0;
+        box-shadow: 0 0 20px rgba(255, 0, 160, 0.3);
       }
+
+      .cyber-monitor {
+        width: 100%;
+        height: 55vh;
+        min-height: 400px;
+        padding: 10px;
+      }
+
+      .cyber-chart-wrapper {
+        padding: 8px;
+      }
+
+      .cyber-mode-switch {
+        flex-direction: column;
+      }
+    }
+
+    /* スクロールバー（見た目調整） */
+    .cyber-control-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .cyber-control-panel::-webkit-scrollbar-track {
+      background: #0a0e17;
+    }
+
+    .cyber-control-panel::-webkit-scrollbar-thumb {
+      background: #00f0ff66;
+      border-radius: 10px;
     }
   </style>
 </head>
+
 <body>
-  <section id="cyber-graph-generator" class="cyber-graph-generator">
-
-    <h2 class="cyber-section-title">📊 グラフ作成ツール</h2>
-
+  <section class="cyber-graph-generator" id="cyberGraphGenerator">
     <div class="cyber-layout">
-      <!-- 左カラム -->
-      <div class="cyber-sidebar">
 
-        <div class="cyber-field">
-          <label for="cyber-chart-title" class="cyber-label">グラフタイトル</label>
-          <input type="text" id="cyber-chart-title" class="cyber-input cyber-chart-title-input"
-                 data-role="chart-title-input" value="新しいグラフ" placeholder="グラフのタイトルを入力">
+      <!-- ======= 左：操作・データ入力パネル ======= -->
+      <aside class="cyber-control-panel" id="cyberControlPanel">
+        <h2 class="cyber-panel-title">📊 グラフ作成サイト</h2>
+
+        <!-- モード切替 -->
+        <div class="cyber-mode-switch" role="radiogroup" aria-label="データ入力モード">
+          <label class="cyber-mode-label">
+            <input type="radio" name="cyberInputMode" value="normal" id="cyberInputModeNormal" checked>
+            <span class="cyber-mode-text">通常データ入力</span>
+          </label>
+          <label class="cyber-mode-label">
+            <input type="radio" name="cyberInputMode" value="histogram" id="cyberInputModeHistogram">
+            <span class="cyber-mode-text">度数分布表入力</span>
+          </label>
         </div>
 
-        <div class="cyber-field">
-          <label for="cyber-chart-type" class="cyber-label">グラフの種類</label>
-          <select id="cyber-chart-type" class="cyber-select" data-role="chart-type">
+        <!-- グラフタイトル -->
+        <div class="cyber-field-group">
+          <label class="cyber-label" for="cyberChartTitle">グラフタイトル</label>
+          <input type="text" id="cyberChartTitle" class="cyber-input" placeholder="グラフタイトルを入力" value="サンプルグラフ">
+        </div>
+
+        <!-- グラフ種類 -->
+        <div class="cyber-field-group">
+          <label class="cyber-label" for="cyberChartType">グラフの種類（12種）</label>
+          <select id="cyberChartType" class="cyber-select">
             <option value="bar">棒グラフ</option>
             <option value="line">折れ線グラフ</option>
-            <option value="doughnut">円グラフ</option>
+            <option value="pie">円グラフ</option>
             <option value="horizontalBar">帯グラフ（横向き積み上げ棒グラフ）</option>
             <option value="histogram">ヒストグラム（柱状グラフ ※度数分布表と連動）</option>
             <option value="scatter">散布図</option>
@@ -340,68 +426,97 @@
           </select>
         </div>
 
-        <div class="cyber-field">
-          <span class="cyber-label">入力モード</span>
-          <div class="cyber-mode-switch" role="radiogroup" aria-label="入力モード">
-            <input type="radio" name="cyber-input-mode" id="cyber-mode-normal" value="normal"
-                   class="cyber-mode-radio" data-role="input-mode" checked>
-            <label for="cyber-mode-normal" class="cyber-mode-label">通常データ入力</label>
-
-            <input type="radio" name="cyber-input-mode" id="cyber-mode-freq" value="frequency"
-                   class="cyber-mode-radio" data-role="input-mode">
-            <label for="cyber-mode-freq" class="cyber-mode-label">度数分布表入力</label>
+        <!-- ===== 通常データ入力モード ===== -->
+        <div id="cyberNormalDataArea" data-cyber-mode-panel="normal">
+          <div class="cyber-section-header">
+            <span class="cyber-section-title">データ入力（項目名と数値）</span>
           </div>
-        </div>
-
-        <!-- 通常データ入力パネル -->
-        <div id="cyber-normal-panel" class="cyber-data-panel cyber-mode-panel" data-mode="normal">
-          <p class="cyber-panel-caption">項目名（ラベル）と数値を入力してください。</p>
-          <div id="cyber-normal-list" class="cyber-data-list" data-role="data-list" data-list-type="normal">
-            <div class="cyber-data-row cyber-normal-row">
-              <input type="text" class="cyber-input cyber-label-input" data-role="item-label"
-                     placeholder="項目名（例：A社）" aria-label="項目名">
-              <input type="number" class="cyber-input cyber-value-input" data-role="item-value"
-                     placeholder="数値" step="any" aria-label="数値">
-              <button type="button" class="cyber-btn cyber-btn-delete" data-role="delete-row"
-                      aria-label="この行を削除">×</button>
+          <div class="cyber-data-list" id="cyberNormalDataList">
+            <div class="cyber-data-row">
+              <input type="text" class="cyber-data-label cyber-input" placeholder="項目名" value="A">
+              <input type="number" class="cyber-data-value cyber-input" placeholder="数値" value="10" step="any">
+              <button type="button" class="cyber-remove-row" aria-label="行を削除">×</button>
+            </div>
+            <div class="cyber-data-row">
+              <input type="text" class="cyber-data-label cyber-input" placeholder="項目名" value="B">
+              <input type="number" class="cyber-data-value cyber-input" placeholder="数値" value="20" step="any">
+              <button type="button" class="cyber-remove-row" aria-label="行を削除">×</button>
             </div>
           </div>
-          <button type="button" class="cyber-btn cyber-btn-add" data-role="add-row"
-                  data-target="cyber-normal-list">＋ データを追加</button>
+          <button type="button" class="cyber-add-row-btn" id="cyberAddNormalRow">＋ 行を追加</button>
         </div>
 
-        <!-- 度数分布表入力パネル -->
-        <div id="cyber-freq-panel" class="cyber-data-panel cyber-mode-panel" data-mode="frequency" hidden>
-          <p class="cyber-panel-caption">階級（区間・範囲）と度数を入力してください。<br>
-          ※ヒストグラム／累積度数折れ線グラフ用データとしてJavaScript側で利用できます。</p>
-          <div id="cyber-freq-list" class="cyber-data-list" data-role="data-list" data-list-type="frequency">
-            <div class="cyber-data-row cyber-freq-row">
-              <input type="text" class="cyber-input cyber-freq-class-input" data-role="freq-class"
-                     placeholder="例：0以上10未満" aria-label="階級（区間・範囲）">
-              <input type="number" class="cyber-input cyber-freq-count-input" data-role="freq-count"
-                     placeholder="度数" min="0" step="1" aria-label="度数">
-              <button type="button" class="cyber-btn cyber-btn-delete" data-role="delete-row"
-                      aria-label="この行を削除">×</button>
+        <!-- ===== 度数分布表入力モード ===== -->
+        <div id="cyberHistogramArea" data-cyber-mode-panel="histogram" hidden>
+          <div class="cyber-section-header">
+            <span class="cyber-section-title">度数分布表入力</span>
+          </div>
+
+          <div class="cyber-field-group">
+            <label class="cyber-label" for="cyberBinWidth">階級の幅（刻み幅）</label>
+            <input type="number" id="cyberBinWidth" class="cyber-input" value="10" min="1" step="any">
+          </div>
+
+          <div class="cyber-histogram-list" id="cyberHistogramList">
+            <div class="cyber-histogram-row">
+              <span class="cyber-bin-label">下限値</span>
+              <input type="number" class="cyber-bin-lower cyber-input" placeholder="例: 0" value="0" step="any">
+              <span class="cyber-bin-label">度数</span>
+              <input type="number" class="cyber-bin-count cyber-input" placeholder="例: 5" value="5" min="0" step="1">
+              <button type="button" class="cyber-remove-row" aria-label="行を削除">×</button>
+            </div>
+            <div class="cyber-histogram-row">
+              <span class="cyber-bin-label">下限値</span>
+              <input type="number" class="cyber-bin-lower cyber-input" placeholder="例: 10" value="10" step="any">
+              <span class="cyber-bin-label">度数</span>
+              <input type="number" class="cyber-bin-count cyber-input" placeholder="例: 8" value="8" min="0" step="1">
+              <button type="button" class="cyber-remove-row" aria-label="行を削除">×</button>
             </div>
           </div>
-          <button type="button" class="cyber-btn cyber-btn-add" data-role="add-row"
-                  data-target="cyber-freq-list">＋ 階級・度数を追加</button>
+
+          <div class="cyber-histogram-actions">
+            <button type="button" class="cyber-add-row-btn" id="cyberAddHistogramRow">＋ 階級を追加</button>
+            <button type="button" class="cyber-sort-btn" id="cyberSortHistogram">▲ 低い順に並べ替え</button>
+          </div>
+
+          <!-- 統計計算テーブル -->
+          <div class="cyber-stats-section">
+            <div class="cyber-section-header">
+              <span class="cyber-section-title">統計計算結果（自動計算）</span>
+            </div>
+            <table class="cyber-stats-table" id="cyberStatsTable">
+              <thead>
+                <tr>
+                  <th>階級</th>
+                  <th>度数</th>
+                  <th>相対度数</th>
+                  <th>百分率（％）</th>
+                  <th>累積相対度数</th>
+                </tr>
+              </thead>
+              <tbody id="cyberStatsBody">
+                <!-- JSで行が生成されます -->
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div class="cyber-field cyver-download-area">
-          <button type="button" id="cyber-download-btn" class="cyber-btn cyber-btn-download"
-                  data-role="download-png">⬇ PNGダウンロード</button>
+        <!-- PNGダウンロード -->
+        <div class="cyber-download-section">
+          <button type="button" class="cyber-download-btn" id="cyberDownloadPng">⬇ PNGダウンロード</button>
         </div>
+      </aside>
 
-      </div>
-
-      <!-- 右カラム -->
-      <div class="cyber-main">
-        <div class="cyber-canvas-wrap">
-          <canvas id="cyber-chart-canvas" class="cyber-canvas" role="img"
-                  aria-label="グラフ描画エリア"></canvas>
+      <!-- ======= 右：グラフモニター ======= -->
+      <main class="cyber-monitor" id="cyberMonitor">
+        <div class="cyber-chart-header">
+          <span class="cyber-chart-title-display" id="cyberChartTitleDisplay">サンプルグラフ</span>
         </div>
-      </div>
+        <div class="cyber-chart-wrapper">
+          <canvas id="cyberMainChart" aria-label="グラフ描画エリア" role="img"></canvas>
+        </div>
+      </main>
+
     </div>
   </section>
 
@@ -409,581 +524,427 @@
     (function() {
       'use strict';
 
-      // ===== DOM 参照 =====
-      const canvas = document.getElementById('cyber-chart-canvas');
-      const ctx = canvas.getContext('2d');
-      const chartTitleInput = document.querySelector('[data-role="chart-title-input"]');
-      const chartTypeSelect = document.querySelector('[data-role="chart-type"]');
-      const modeRadios = document.querySelectorAll('[data-role="input-mode"]');
-      const normalPanel = document.getElementById('cyber-normal-panel');
-      const freqPanel = document.getElementById('cyber-freq-panel');
-      const normalList = document.querySelector('[data-list-type="normal"]');
-      const freqList = document.querySelector('[data-list-type="frequency"]');
-      const downloadBtn = document.getElementById('cyber-download-btn');
-
-      // 現在のグラフインスタンス
-      let chart = null;
-
-      // ===== 初期設定 =====
-      // デフォルトグラフ（棒グラフ）
-      function createChart() {
-        if (chart) chart.destroy();
-        const data = gatherData();
-        chart = buildChart(data);
-      }
-
-      // ===== データ取得 =====
-      function gatherData() {
-        const mode = getInputMode();
-        if (mode === 'normal') {
-          return getNormalData();
-        } else {
-          return getFreqData();
+      // ==== プラグイン登録（正しくCDNが読み込まれた場合のみ） ====
+      try {
+        if (window.BoxPlotController) {
+          Chart.register(BoxPlotController);
         }
+        if (window.BoxPlotChart) {
+          Chart.register(BoxPlotChart);
+        }
+        if (window.MatrixController) {
+          Chart.register(MatrixController);
+        }
+        if (window.SankeyController) {
+          Chart.register(SankeyController);
+        }
+      } catch (e) {
+        console.warn('プラグイン登録エラー:', e);
       }
 
-      function getInputMode() {
-        const checkedRadio = document.querySelector('input[name="cyber-input-mode"]:checked');
-        return checkedRadio ? checkedRadio.value : 'normal';
+      // Chart.js 全体のテーマをダークに
+      Chart.defaults.color = '#c0d1f5';
+      Chart.defaults.borderColor = 'rgba(255,255,255,0.1)';
+
+      // ==== DOM 参照 ====
+      const modeNormal = document.getElementById('cyberInputModeNormal');
+      const modeHist = document.getElementById('cyberInputModeHistogram');
+      const normalArea = document.getElementById('cyberNormalDataArea');
+      const histArea = document.getElementById('cyberHistogramArea');
+      const chartTypeSelect = document.getElementById('cyberChartType');
+      const chartTitleInput = document.getElementById('cyberChartTitle');
+      const chartTitleDisplay = document.getElementById('cyberChartTitleDisplay');
+      const canvas = document.getElementById('cyberMainChart');
+      const ctx = canvas.getContext('2d');
+      const downloadBtn = document.getElementById('cyberDownloadPng');
+      const addNormalBtn = document.getElementById('cyberAddNormalRow');
+      const addHistBtn = document.getElementById('cyberAddHistogramRow');
+      const sortHistBtn = document.getElementById('cyberSortHistogram');
+      const binWidthInput = document.getElementById('cyberBinWidth');
+
+      let myChart = null;
+
+      // ネオンカラーパレット
+      const neonColors = ['#00f0ff', '#ff00a0', '#b400ff', '#00ffd9', '#ffb300', '#ff6b00', '#7cff00', '#ff007f', '#5c7cff', '#ffcc00', '#00e5ff', '#ff5588'];
+
+      // ==== モード切替処理 ====
+      function switchMode(mode) {
+        if (mode === 'normal') {
+          normalArea.hidden = false;
+          histArea.hidden = true;
+          modeNormal.checked = true;
+        } else {
+          normalArea.hidden = true;
+          histArea.hidden = false;
+          modeHist.checked = true;
+        }
+        updateStats();
+        updateChart();
       }
 
-      function getNormalData() {
-        const rows = normalList.querySelectorAll('.cyber-data-row');
-        const labels = [];
-        const values = [];
-        rows.forEach(row => {
-          const labelInput = row.querySelector('[data-role="item-label"]');
-          const valueInput = row.querySelector('[data-role="item-value"]');
-          const label = labelInput.value.trim();
-          const value = parseFloat(valueInput.value);
-          if (label !== '' && !isNaN(value)) {
+      modeNormal.addEventListener('change', () => switchMode('normal'));
+      modeHist.addEventListener('change', () => switchMode('histogram'));
+
+      // ==== 行追加・削除（イベント委譲） ====
+      document.addEventListener('click', function(e) {
+        // 行削除
+        if (e.target.classList.contains('cyber-remove-row')) {
+          const container = e.target.closest('.cyber-data-list, .cyber-histogram-list');
+          if (container && container.querySelectorAll('.cyber-data-row, .cyber-histogram-row').length > 1) {
+            e.target.closest('.cyber-data-row, .cyber-histogram-row').remove();
+          } else {
+            alert('最低でも1行は必要です。');
+          }
+          if (container) {
+            updateStats();
+            updateChart();
+          }
+        }
+
+        // 通常データ行追加
+        if (e.target.id === 'cyberAddNormalRow') {
+          const list = document.getElementById('cyberNormalDataList');
+          const row = document.createElement('div');
+          row.className = 'cyber-data-row';
+          row.innerHTML = `
+            <input type="text" class="cyber-data-label cyber-input" placeholder="項目名" value="">
+            <input type="number" class="cyber-data-value cyber-input" placeholder="数値" value="0" step="any">
+            <button type="button" class="cyber-remove-row" aria-label="行を削除">×</button>
+          `;
+          list.appendChild(row);
+          updateChart();
+        }
+
+        // ヒストグラム行追加
+        if (e.target.id === 'cyberAddHistogramRow') {
+          const list = document.getElementById('cyberHistogramList');
+          const row = document.createElement('div');
+          row.className = 'cyber-histogram-row';
+          row.innerHTML = `
+            <span class="cyber-bin-label">下限値</span>
+            <input type="number" class="cyber-bin-lower cyber-input" placeholder="例: 0" value="0" step="any">
+            <span class="cyber-bin-label">度数</span>
+            <input type="number" class="cyber-bin-count cyber-input" placeholder="例: 5" value="0" min="0" step="1">
+            <button type="button" class="cyber-remove-row" aria-label="行を削除">×</button>
+          `;
+          list.appendChild(row);
+          updateStats();
+          updateChart();
+        }
+      });
+
+      // ==== 入力変更でグラフ更新 ====
+      document.addEventListener('input', function(e) {
+        if (e.target.matches('.cyber-data-label, .cyber-data-value, .cyber-bin-lower, .cyber-bin-count, #cyberBinWidth, #cyberChartType, #cyberChartTitle')) {
+          if (e.target.id === 'cyberChartTitle') {
+            chartTitleDisplay.textContent = e.target.value || '無題';
+          }
+          if (e.target.classList.contains('cyber-bin-lower') || e.target.classList.contains('cyber-bin-count') || e.target.id === 'cyberBinWidth') {
+            updateStats();
+          }
+          updateChart();
+        }
+      });
+
+      // ==== ヒストグラムの並べ替え（低い順） ====
+      sortHistBtn.addEventListener('click', function() {
+        const list = document.getElementById('cyberHistogramList');
+        const rows = Array.from(list.querySelectorAll('.cyber-histogram-row'));
+        rows.sort((a, b) => {
+          const av = parseFloat(a.querySelector('.cyber-bin-lower').value) || 0;
+          const bv = parseFloat(b.querySelector('.cyber-bin-lower').value) || 0;
+          return av - bv;
+        });
+        rows.forEach(row => list.appendChild(row));
+        updateStats();
+        updateChart();
+      });
+
+      // ==== 統計計算テーブル更新 ====
+      function updateStats() {
+        const statsBody = document.getElementById('cyberStatsBody');
+        const binWidth = parseFloat(binWidthInput.value) || 1;
+        const rows = Array.from(document.querySelectorAll('#cyberHistogramList .cyber-histogram-row'));
+        const bins = rows.map(row => {
+          const lower = parseFloat(row.querySelector('.cyber-bin-lower').value) || 0;
+          const count = parseFloat(row.querySelector('.cyber-bin-count').value) || 0;
+          return { lower, count };
+        });
+
+        // 低い順ソート
+        bins.sort((a, b) => a.lower - b.lower);
+
+        const total = bins.reduce((sum, b) => sum + b.count, 0);
+        let cum = 0;
+        statsBody.innerHTML = '';
+
+        bins.forEach(bin => {
+          const rel = total > 0 ? bin.count / total : 0;
+          const percent = rel * 100;
+          cum += bin.count;
+          const cumRel = total > 0 ? cum / total : 0;
+          const tr = document.createElement('tr');
+          tr.className = 'cyber-stats-row';
+          tr.innerHTML = `
+            <td>${bin.lower} 〜 ${bin.lower + binWidth}</td>
+            <td>${bin.count}</td>
+            <td>${rel.toFixed(4)}</td>
+            <td>${percent.toFixed(2)}%</td>
+            <td>${cumRel.toFixed(4)}</td>
+          `;
+          statsBody.appendChild(tr);
+        });
+      }
+
+      // ==== データ取得 ====
+      function getChartData() {
+        const mode = modeHist.checked ? 'histogram' : 'normal';
+        let labels = [];
+        let values = [];
+
+        if (mode === 'normal') {
+          const rows = document.querySelectorAll('#cyberNormalDataList .cyber-data-row');
+          rows.forEach(row => {
+            const label = row.querySelector('.cyber-data-label').value || '';
+            const value = parseFloat(row.querySelector('.cyber-data-value').value) || 0;
             labels.push(label);
             values.push(value);
-          }
-        });
+          });
+        } else {
+          const rows = document.querySelectorAll('#cyberHistogramList .cyber-histogram-row');
+          const binWidth = parseFloat(binWidthInput.value) || 1;
+          rows.forEach(row => {
+            const lower = parseFloat(row.querySelector('.cyber-bin-lower').value) || 0;
+            const count = parseFloat(row.querySelector('.cyber-bin-count').value) || 0;
+            const upper = lower + binWidth;
+            labels.push(`${lower}〜${upper}`);
+            values.push(count);
+          });
+        }
+
         return { labels, values };
       }
 
-      function getFreqData() {
-        const rows = freqList.querySelectorAll('.cyber-data-row');
-        const labels = [];
-        const values = [];
-        rows.forEach(row => {
-          const classInput = row.querySelector('[data-role="freq-class"]');
-          const countInput = row.querySelector('[data-role="freq-count"]');
-          const label = classInput.value.trim();
-          const value = parseInt(countInput.value, 10);
-          if (label !== '' && !isNaN(value)) {
-            labels.push(label);
-            values.push(value);
-          }
-        });
-        return { labels, values };
-      }
-
-      // ===== グラフ構築 =====
-      function buildChart(data) {
+      // ==== グラフ描画 ====
+      function updateChart() {
         const type = chartTypeSelect.value;
-        const mode = getInputMode();
-        const labels = data.labels;
-        const values = data.values;
-        const title = chartTitleInput.value || '新しいグラフ';
+        const currentTitle = chartTitleInput.value || 'グラフ';
+        chartTitleDisplay.textContent = currentTitle;
 
-        // 基本オプション
-        const baseOptions = {
+        const { labels, values } = getChartData();
+
+        if (myChart) myChart.destroy();
+
+        if (!labels.length || !values.length) {
+          return;
+        }
+
+        const colors = values.map((_, i) => neonColors[i % neonColors.length]);
+        let datasets = [];
+        let options = {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
             title: {
               display: true,
-              text: title,
-              color: '#00f0ff',
-              font: { size: 20, weight: 'bold' },
-              padding: { top: 8, bottom: 8 }
+              text: currentTitle,
+              color: '#a0f0ff',
+              font: { size: 18 }
             },
             legend: {
-              labels: { color: '#e0e4ff' }
+              labels: { color: '#e0e5ff' }
             }
           },
           scales: {
-            x: { ticks: { color: '#b0b8d0' }, grid: { color: 'rgba(40, 50, 100, 0.5)' } },
-            y: { ticks: { color: '#b0b8d0' }, grid: { color: 'rgba(40, 50, 100, 0.5)' } }
+            x: { ticks: { color: '#8fa3c8' } },
+            y: { ticks: { color: '#8fa3c8' } }
           }
         };
 
-        // チャートタイプごとのデータセット生成
-        let config = {};
-
         switch (type) {
           case 'bar':
-            config = {
-              type: 'bar',
-              data: {
-                labels: labels,
-                datasets: [{
-                  label: 'データ',
-                  data: values,
-                  backgroundColor: 'rgba(0, 240, 255, 0.7)',
-                  borderColor: '#00f0ff',
-                  borderWidth: 2,
-                  borderRadius: 4
-                }]
-              },
-              options: { ...baseOptions }
-            };
+            datasets = [{
+              label: 'データ',
+              data: values,
+              backgroundColor: colors,
+              borderColor: colors.map(c => c + 'cc'),
+              borderWidth: 2
+            }];
             break;
 
           case 'line':
-            // 度数分布表モードなら累積度数折れ線にする
-            if (mode === 'frequency') {
-              const cumulative = values.reduce((acc, val, i) => {
-                acc.push((acc.length > 0 ? acc[i-1] : 0) + val);
-                return acc;
-              }, []);
-              config = {
-                type: 'line',
-                data: {
-                  labels: labels,
-                  datasets: [{
-                    label: '累積度数',
-                    data: cumulative,
-                    borderColor: '#ff00aa',
-                    backgroundColor: 'rgba(255, 0, 170, 0.2)',
-                    borderWidth: 3,
-                    pointBackgroundColor: '#fff',
-                    fill: true,
-                    tension: 0.2
-                  }]
-                },
-                options: { ...baseOptions }
-              };
-            } else {
-              config = {
-                type: 'line',
-                data: {
-                  labels: labels,
-                  datasets: [{
-                    label: 'データ',
-                    data: values,
-                    borderColor: '#00ff9d',
-                    backgroundColor: 'rgba(0, 255, 157, 0.1)',
-                    borderWidth: 3,
-                    pointBackgroundColor: '#00ff9d',
-                    tension: 0.3
-                  }]
-                },
-                options: { ...baseOptions }
-              };
-            }
+            datasets = [{
+              label: 'データ',
+              data: values,
+              borderColor: '#00f0ff',
+              backgroundColor: 'rgba(0,240,255,0.1)',
+              borderWidth: 2,
+              pointRadius: 5,
+              pointBackgroundColor: colors,
+              tension: 0.3
+            }];
             break;
 
-          case 'doughnut':
-            config = {
-              type: 'doughnut',
-              data: {
-                labels: labels,
-                datasets: [{
-                  label: 'データ',
-                  data: values,
-                  backgroundColor: [
-                    '#ff00aa', '#00f0ff', '#9d00ff', '#00ff9d', '#ffcc00',
-                    '#ff6600', '#5533ff', '#ff3366', '#33ff99', '#aa66ff'
-                  ],
-                  borderColor: '#0b0d1a',
-                  borderWidth: 3
-                }]
-              },
-              options: { ...baseOptions, scales: undefined }
-            };
+          case 'pie':
+          case 'radar':
+            datasets = [{
+              label: 'データ',
+              data: values,
+              backgroundColor: colors,
+              borderColor: '#0a0e17',
+              borderWidth: 2
+            }];
             break;
 
           case 'horizontalBar':
-            config = {
-              type: 'bar',
-              data: {
-                labels: labels,
-                datasets: [{
-                  label: 'データ',
-                  data: values,
-                  backgroundColor: 'rgba(255, 0, 170, 0.7)',
-                  borderColor: '#ff00aa',
-                  borderWidth: 2
-                }]
-              },
-              options: {
-                ...baseOptions,
-                indexAxis: 'y'
-              }
-            };
-            break;
-
-          case 'histogram':
-            // 度数分布表のデータをそのまま棒グラフで表現（ヒストグラム）
-            config = {
-              type: 'bar',
-              data: {
-                labels: labels,
-                datasets: [{
-                  label: '度数',
-                  data: values,
-                  backgroundColor: 'rgba(0, 240, 255, 0.8)',
-                  borderColor: '#00f0ff',
-                  borderWidth: 1,
-                  barPercentage: 1.0,
-                  categoryPercentage: 1.0
-                }]
-              },
-              options: {
-                ...baseOptions,
-                scales: {
-                  ...baseOptions.scales,
-                  x: { ...baseOptions.scales.x, barPercentage: 1.0, categoryPercentage: 1.0 }
-                }
-              }
-            };
-            break;
-
-          case 'scatter':
-            // 正常データを散布図風に：値をxとyに分割
-            const scatterData = values.map((v, i) => ({ x: i + 1, y: v }));
-            config = {
-              type: 'scatter',
-              data: {
-                datasets: [{
-                  label: '散布図 (入力値)',
-                  data: scatterData,
-                  backgroundColor: '#ff00aa',
-                  borderColor: '#ff00aa',
-                  pointRadius: 6
-                }]
-              },
-              options: baseOptions
-            };
+            datasets = [{
+              label: 'データ',
+              data: values,
+              backgroundColor: colors,
+              borderColor: colors.map(c => c + 'cc'),
+              borderWidth: 2
+            }];
+            options.indexAxis = 'y';
             break;
 
           case 'stackedBar':
-            // 正常データを積み上げ棒グラフ風に（単一系列のため1本の棒）
-            config = {
-              type: 'bar',
-              data: {
-                labels: labels.length ? labels : ['データ'],
-                datasets: [{
-                  label: '系列1',
-                  data: values.length ? values : [0],
-                  backgroundColor: '#00f0ff',
-                  borderColor: '#00f0ff'
-                }]
-              },
-              options: {
-                ...baseOptions,
-                scales: {
-                  ...baseOptions.scales,
-                  x: { ...baseOptions.scales.x, stacked: true },
-                  y: { ...baseOptions.scales.y, stacked: true }
-                }
-              }
-            };
+            datasets = [{
+              label: 'データ',
+              data: values,
+              backgroundColor: colors,
+              borderColor: colors.map(c => c + 'cc'),
+              borderWidth: 2,
+              stack: 'stack1'
+            }];
+            options.scales.x.stacked = true;
+            options.scales.y.stacked = true;
             break;
 
-          case 'radar':
-            config = {
-              type: 'radar',
-              data: {
-                labels: labels,
-                datasets: [{
-                  label: 'データ',
-                  data: values,
-                  borderColor: '#00ff9d',
-                  backgroundColor: 'rgba(0, 255, 157, 0.2)',
-                  borderWidth: 2,
-                  pointBackgroundColor: '#00ff9d'
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  title: { display: true, text: title, color: '#00f0ff', font: { size: 20 } }
-                },
-                scales: {
-                  r: {
-                    grid: { color: 'rgba(255,255,255,0.2)' },
-                    ticks: { color: '#b0b8d0' },
-                    pointLabels: { color: '#e0e4ff' }
-                  }
-                }
-              }
-            };
+          case 'histogram':
+            // 度数分布表データをそのまま棒グラフで描画
+            datasets = [{
+              label: '度数',
+              data: values,
+              backgroundColor: 'rgba(0, 240, 255, 0.7)',
+              borderColor: '#00f0ff',
+              borderWidth: 1
+            }];
+            options.scales.x.title = { display: true, text: '階級', color: '#8fa3c8' };
+            options.scales.y.title = { display: true, text: '度数', color: '#8fa3c8' };
+            break;
+
+          case 'scatter':
+            datasets = [{
+              label: '散布図',
+              data: labels.map((l, i) => ({ x: parseFloat(l) || i, y: values[i] })),
+              backgroundColor: 'rgba(255, 0, 160, 0.7)',
+              borderColor: '#ff00a0',
+              borderWidth: 1,
+              pointRadius: 6
+            }];
             break;
 
           case 'bubble':
-            // バブルチャート（値に応じてバブルサイズ）
-            const bubbleData = values.map((v, i) => ({ x: i + 1, y: v, r: Math.max(5, Math.abs(v) % 20) })); 
-            config = {
-              type: 'bubble',
-              data: {
-                datasets: [{
-                  label: 'バブル',
-                  data: bubbleData,
-                  backgroundColor: 'rgba(255, 0, 170, 0.5)',
-                  borderColor: '#ff00aa',
-                  borderWidth: 2
-                }]
-              },
-              options: baseOptions
-            };
+            datasets = [{
+              label: 'バブルチャート',
+              data: labels.map((_, i) => ({
+                x: i,
+                y: values[i],
+                r: Math.abs(values[i]) / 2 + 4
+              })),
+              backgroundColor: 'rgba(180, 0, 255, 0.6)',
+              borderColor: '#b400ff',
+              borderWidth: 1
+            }];
             break;
 
           case 'boxplot':
-            // 箱ひげ図（プラグイン）: 入力値から簡易的な箱ひげデータを生成
-            const sorted = values.slice().sort((a, b) => a - b);
-            if (sorted.length === 0) sorted.push(0);
-            const q1 = sorted[Math.floor(sorted.length * 0.25)];
-            const med = sorted[Math.floor(sorted.length * 0.5)];
-            const q3 = sorted[Math.floor(sorted.length * 0.75)];
-            const min = sorted[0];
-            const max = sorted[sorted.length - 1];
-            const boxData = [[min, q1, med, q3, max]];
-            config = {
-              type: 'boxplot',
-              data: {
-                labels: ['データ'],
-                datasets: [{
-                  label: '箱ひげ図',
-                  data: boxData,
-                  backgroundColor: 'rgba(0, 240, 255, 0.4)',
-                  borderColor: '#00f0ff',
-                  borderWidth: 2
-                }]
-              },
-              options: baseOptions
-            };
+            // 箱ひげ図：単一ボックス（複数値を括り出した簡易版）
+            datasets = [{
+              label: 'ボックス',
+              data: [values],
+              backgroundColor: 'rgba(0, 240, 255, 0.2)',
+              borderColor: '#00f0ff',
+              borderWidth: 2
+            }];
             break;
 
           case 'heatmap':
-            // ヒートマップ（matrixプラグイン）：行列風データを入力値から生成
-            const heatData = [];
-            labels.forEach((label, i) => {
-              if (values[i] !== undefined) {
-                heatData.push({ x: i, y: 0, v: values[i] });
-              }
-            });
-            config = {
-              type: 'matrix',
-              data: {
-                datasets: [{
-                  label: 'ヒートマップ',
-                  data: heatData,
-                  backgroundColor(context) {
-                    const v = context.dataset.data[context.dataIndex].v;
-                    const alpha = Math.min(1, Math.abs(v) / 100);
-                    return v >= 0 ? `rgba(0, 240, 255, ${alpha})` : `rgba(255, 0, 170, ${alpha})`;
-                  },
-                  borderWidth: 1,
-                  borderColor: '#0b0d1a',
-                  width: 60,
-                  height: 60
-                }]
+            datasets = [{
+              label: 'ヒートマップ',
+              data: labels.map((label, i) => ({ x: i, y: label, v: values[i] })),
+              backgroundColor: (ctx) => {
+                const v = ctx.raw ? ctx.raw.v : 0;
+                const max = Math.max(...values, 1);
+                const alpha = Math.abs(v) / max;
+                return `rgba(255, 0, 160, ${alpha})`;
               },
-              options: {
-                ...baseOptions,
-                scales: {
-                  x: { ticks: { display: false }, grid: { display: false } },
-                  y: { ticks: { display: false }, grid: { display: false } }
-                }
-              }
+              borderWidth: 1,
+              borderColor: '#0a0e17'
+            }];
+            options.scales = {
+              x: { type: 'category', labels: labels, ticks: { color: '#8fa3c8' } },
+              y: { type: 'category', labels: labels, ticks: { color: '#8fa3c8' } }
             };
             break;
 
           case 'sankey':
-            // サンキーダイアグラム：入力データをサンキー風のフローに変換
-            const nodes = [];
-            const edges = [];
-            labels.forEach((label, i) => {
-              nodes.push({ id: label.length ? label : `node${i}` });
-              if (i < 2 && values[i] !== undefined) {
-                // フローのための擬似エッジ
-                edges.push({
-                  from: labels[0] || 'root',
-                  to: labels[i] || `node${i}`,
-                  flow: values[i]
-                });
-              }
-            });
-            // 最低限のサンキーデータ
-            const sankeyData = {
-              nodes: nodes.length ? nodes : [{ id: 'A' }, { id: 'B' }],
-              edges: edges.length ? edges : [{ from: 'A', to: 'B', flow: 10 }]
-            };
-            config = {
-              type: 'sankey',
-              data: {
-                datasets: [{
-                  label: 'サンキー',
-                  data: sankeyData,
-                  colorFrom: '#00f0ff',
-                  colorTo: '#ff00aa',
-                  colorMode: 'gradient'
-                }]
-              },
-              options: baseOptions
-            };
+            const from = labels.slice(0, -1);
+            const to = labels.slice(1);
+            const flow = values.slice(0, -1);
+            datasets = [{
+              label: 'フロー',
+              data: from.map((f, i) => ({ from: f, to: to[i], flow: Math.abs(flow[i]) })),
+              colorFrom: (ctx) => neonColors[ctx.dataIndex % neonColors.length],
+              colorTo: (ctx) => neonColors[(ctx.dataIndex + 1) % neonColors.length],
+              backgroundColor: (ctx) => neonColors[ctx.dataIndex % neonColors.length] + '44',
+              borderWidth: 2
+            }];
             break;
 
           default:
-            config = {
-              type: 'bar',
-              data: {
-                labels: labels,
-                datasets: [{
-                  label: 'データ',
-                  data: values,
-                  backgroundColor: 'rgba(0, 240, 255, 0.7)'
-                }]
-              },
-              options: baseOptions
-            };
+            datasets = [{
+              label: 'データ',
+              data: values,
+              backgroundColor: colors
+            }];
         }
 
-        // Chart.js で描画
-        try {
-          return new Chart(ctx, config);
-        } catch (e) {
-          console.error('グラフ描画エラー:', e);
-          // エラー時は棒グラフにフォールバック
-          const fallbackConfig = {
-            type: 'bar',
-            data: {
-              labels: labels,
-              datasets: [{
-                label: 'エラー（データを確認）',
-                data: values,
-                backgroundColor: 'rgba(255,0,0,0.5)'
-              }]
-            },
-            options: baseOptions
-          };
-          return new Chart(ctx, fallbackConfig);
-        }
+        myChart = new Chart(ctx, {
+          type: (type === 'horizontalBar') ? 'bar' : (type === 'boxplot' ? 'boxplot' : type),
+          data: {
+            labels: labels,
+            datasets: datasets
+          },
+          options: options
+        });
       }
 
-      // ===== モード切り替え =====
-      function switchMode(mode) {
-        if (mode === 'normal') {
-          normalPanel.hidden = false;
-          freqPanel.hidden = true;
-        } else {
-          normalPanel.hidden = true;
-          freqPanel.hidden = false;
+      // ==== PNGダウンロード ====
+      downloadBtn.addEventListener('click', function() {
+        const title = chartTitleInput.value || 'グラフ';
+        const url = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.download = title + '.png';
+        a.href = url;
+        a.click();
+      });
+
+      // ==== グラフタイプ変更時、ヒストグラム選択時はモード切替 ====
+      chartTypeSelect.addEventListener('change', function() {
+        if (this.value === 'histogram' && !modeHist.checked) {
+          switchMode('histogram');
         }
+        updateChart();
+      });
+
+      // ==== 初期化 ====
+      function init() {
+        switchMode('normal');
         updateChart();
       }
 
-      // ===== 行追加・削除 =====
-      function addRow(targetListId) {
-        const list = document.getElementById(targetListId);
-        const isFreq = list.dataset.listType === 'frequency';
-        const row = document.createElement('div');
-        row.className = 'cyber-data-row' + (isFreq ? ' cyber-freq-row' : ' cyber-normal-row');
-
-        if (isFreq) {
-          row.innerHTML = `
-            <input type="text" class="cyber-input cyber-freq-class-input" data-role="freq-class"
-                   placeholder="例：0以上10未満" aria-label="階級（区間・範囲）">
-            <input type="number" class="cyber-input cyber-freq-count-input" data-role="freq-count"
-                   placeholder="度数" min="0" step="1" aria-label="度数">
-            <button type="button" class="cyber-btn cyber-btn-delete" data-role="delete-row"
-                    aria-label="この行を削除">×</button>
-          `;
-        } else {
-          row.innerHTML = `
-            <input type="text" class="cyber-input cyber-label-input" data-role="item-label"
-                   placeholder="項目名（例：A社）" aria-label="項目名">
-            <input type="number" class="cyber-input cyber-value-input" data-role="item-value"
-                   placeholder="数値" step="any" aria-label="数値">
-            <button type="button" class="cyber-btn cyber-btn-delete" data-role="delete-row"
-                    aria-label="この行を削除">×</button>
-          `;
-        }
-        list.appendChild(row);
-        attachRowEvents(row);
-      }
-
-      function deleteRow(row) {
-        const list = row.parentNode;
-        // 最低1行は残す（初期行の削除防止）
-        if (list.querySelectorAll('.cyber-data-row').length > 1) {
-          row.remove();
-          updateChart();
-        } else {
-          // 1行だけなら入力をクリア
-          row.querySelectorAll('input').forEach(input => input.value = '');
-        }
-      }
-
-      function attachRowEvents(row) {
-        const deleteBtn = row.querySelector('[data-role="delete-row"]');
-        if (deleteBtn) {
-          deleteBtn.addEventListener('click', () => deleteRow(row));
-        }
-        row.querySelectorAll('input').forEach(input => {
-          input.addEventListener('input', updateChart);
-          input.addEventListener('change', updateChart);
-        });
-      }
-
-      // ===== グラフ更新 =====
-      function updateChart() {
-        if (chart) chart.destroy();
-        const data = gatherData();
-        chart = buildChart(data);
-      }
-
-      // ===== ダウンロード =====
-      function downloadPNG() {
-        const title = chartTitleInput.value || 'グラフ';
-        const link = document.createElement('a');
-        link.download = title + '.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      }
-
-      // ===== イベントリスナー設定 =====
-      function init() {
-        // モード切り替え
-        modeRadios.forEach(radio => {
-          radio.addEventListener('change', (e) => {
-            switchMode(e.target.value);
-          });
-        });
-
-        // 追加ボタン
-        document.querySelectorAll('[data-role="add-row"]').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const targetId = e.target.dataset.target;
-            addRow(targetId);
-          });
-        });
-
-        // 初期行にイベント付与
-        document.querySelectorAll('.cyber-data-row').forEach(row => attachRowEvents(row));
-
-        // グラフタイトル変更
-        chartTitleInput.addEventListener('input', updateChart);
-
-        // グラフ種類変更
-        chartTypeSelect.addEventListener('change', updateChart);
-
-        // ダウンロードボタン
-        downloadBtn.addEventListener('click', downloadPNG);
-
-        // 初期描画
-        switchMode('normal');
-      }
-
-      // 実行
       init();
-
     })();
   </script>
 </body>
