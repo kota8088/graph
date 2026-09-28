@@ -9,6 +9,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-boxplot@3.7.0/dist/chartjs-chart-boxplot.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-sankey@0.12.0/dist/chartjs-chart-sankey.min.js"></script>
+<script src="https://cloudflare.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
   * {
     box-sizing: border-box;
@@ -103,57 +105,28 @@
   }
   .mode-switch {
     display: flex;
-    align-items: center;
     gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
   }
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 44px;
-    height: 22px;
-  }
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  .slider {
-    position: absolute;
+  .mode-switch label {
+    color: #ccc;
+    font-size: 14px;
     cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: #333;
-    border-radius: 22px;
-    transition: 0.3s;
-    border: 1px solid #00f0ff;
+    padding: 6px 16px;
+    border: 1px solid #444;
+    border-radius: 20px;
+    transition: all 0.2s;
+    background: #15151f;
   }
-  .slider:before {
-    content: "";
-    position: absolute;
-    height: 14px;
-    width: 14px;
-    left: 3px;
-    bottom: 3px;
-    background: #00f0ff;
-    border-radius: 50%;
-    transition: 0.3s;
-    box-shadow: 0 0 8px #00f0ff;
-  }
-  .switch input:checked + .slider {
-    background: #1a0033;
-    border-color: #ff00a0;
-  }
-  .switch input:checked + .slider:before {
-    transform: translateX(22px);
-    background: #ff00a0;
-    box-shadow: 0 0 8px #ff00a0;
-  }
-  #modeLabel {
+  .mode-switch label:has(input:checked) {
+    border-color: #00f0ff;
     color: #00f0ff;
-    font-weight: bold;
-    text-shadow: 0 0 6px #00f0ff;
+    box-shadow: 0 0 10px rgba(0,240,255,0.5);
+    background: #0d1a1f;
+  }
+  .mode-switch input {
+    margin-right: 4px;
   }
   .input-area, .graph-controls, #outputArea {
     background: #16161f;
@@ -381,11 +354,8 @@
   <main>
     <section id="leftPanel">
       <div class="mode-switch">
-        <label class="switch">
-          <input type="checkbox" id="modeToggle">
-          <span class="slider"></span>
-        </label>
-        <span id="modeLabel">通常入力</span>
+        <label><input type="radio" name="modeRadio" value="normal" checked> 通常入力</label>
+        <label><input type="radio" name="modeRadio" value="freq"> 度数分布表入力</label>
       </div>
 
       <div id="normalInputArea" class="input-area">
@@ -439,7 +409,7 @@
         <button id="downloadBtn">PNGダウンロード</button>
       </div>
 
-      <div id="outputArea">
+      <div id="outputArea" style="display:none;">
         <h3>度数分布表（出力）</h3>
         <div id="freqOutputTableContainer"></div>
       </div>
@@ -485,14 +455,13 @@
   let state = { chart: null };
 
   function getMode() {
-    return document.getElementById('modeToggle').checked;
+    return document.querySelector('input[name="modeRadio"]:checked').value === 'freq';
   }
 
   function setMode(isFreq) {
-    document.getElementById('modeToggle').checked = isFreq;
     document.getElementById('normalInputArea').style.display = isFreq ? 'none' : 'block';
     document.getElementById('freqInputArea').style.display = isFreq ? 'block' : 'none';
-    document.getElementById('modeLabel').textContent = isFreq ? '度数分布表入力' : '通常入力';
+    document.getElementById('outputArea').style.display = isFreq ? 'block' : 'none';
   }
 
   function parseNumericList(text) {
@@ -875,6 +844,49 @@
           borderWidth: 1
         });
         options.scales = undefined;
+
+        // ------- サンキー強化設定 -------
+        options.plugins = options.plugins || {};
+        options.plugins.tooltip = {
+          backgroundColor: '#0d0d1a',
+          titleColor: '#ffffff',
+          bodyColor: '#ffffff',
+          borderColor: '#00f0ff',
+          borderWidth: 2,
+          titleFont: { size: 14 },
+          bodyFont: { size: 14 },
+          displayColors: false,
+          callbacks: {
+            label: (ctx) => {
+              const raw = ctx.raw;
+              if (raw && raw.from !== undefined && raw.to !== undefined && raw.flow !== undefined) {
+                return `${raw.from} → ${raw.to}: ${raw.flow}`;
+              }
+              return ctx.label || '';
+            }
+          }
+        };
+
+        options.onHover = (event, activeElements) => {
+          if (activeElements && activeElements.length > 0) {
+            const ctx = activeElements[0].element.$context;
+            const raw = ctx.raw;
+            if (raw) {
+              console.log(`Hover: ${raw.from} → ${raw.to}: ${raw.flow}`);
+            }
+          }
+        };
+
+        options.onClick = (event, activeElements) => {
+          if (activeElements && activeElements.length > 0) {
+            const ctx = activeElements[0].element.$context;
+            const raw = ctx.raw;
+            if (raw) {
+              alert(`クリック（From: ${raw.from} / To: ${raw.to} / Value: ${raw.flow}）`);
+            }
+          }
+        };
+        // ---------------------------------
       }
     }
 
@@ -916,10 +928,12 @@
     updateChart();
   }
 
-  // Event listeners
-  document.getElementById('modeToggle').addEventListener('change', function() {
-    setMode(this.checked);
-    updateAll();
+  document.querySelectorAll('input[name="modeRadio"]').forEach(r => {
+    r.addEventListener('change', function() {
+      const isFreq = this.value === 'freq';
+      setMode(isFreq);
+      updateAll();
+    });
   });
 
   document.getElementById('chartType').addEventListener('change', function() {
@@ -957,16 +971,25 @@
     }
   });
 
-  document.getElementById('downloadBtn').addEventListener('click', () => {
-    if (!state.chart) return;
+  document.getElementById('downloadBtn').addEventListener('click', function() {
     const title = document.getElementById('chartTitle').value || 'graph';
-    const a = document.createElement('a');
-    a.href = state.chart.toBase64Image();
-    a.download = title + '.png';
-    a.click();
+    if (typeof html2canvas !== 'undefined') {
+      html2canvas(document.getElementById('app'), { backgroundColor: '#0a0a0f' }).then(canvas => {
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = title + '.png';
+        a.click();
+      });
+    } else {
+      if (state.chart) {
+        const a = document.createElement('a');
+        a.href = state.chart.toBase64Image();
+        a.download = title + '.png';
+        a.click();
+      }
+    }
   });
 
-  // Help modal
   document.getElementById('helpBtn').addEventListener('click', () => {
     document.getElementById('helpModal').style.display = 'flex';
   });
@@ -979,7 +1002,6 @@
     }
   });
 
-  // Initialize
   setMode(false);
   addFreqRow();
   addFreqRow();
